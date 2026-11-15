@@ -279,3 +279,50 @@ test("the programme builder loads 24 exercises first; Show all and search list t
   await builder.getByLabel("Search exercise library").fill("");
   await expect(items).toHaveCount(24);
 });
+
+test("a coach removes a workout from a programme; the week stops using it", async ({ page }) => {
+  await demoCoach(page);
+  await nav(page, "Clients").click();
+  await page.locator(".client-card").filter({ hasText: "Jordan Williams" }).click();
+  await page.getByRole("tab", { name: "Plan", exact: true }).click();
+  const before = (await state(page)).clients.find((c) => c.name === "Jordan Williams").program;
+  await page.getByRole("button", { name: /Edit programme/ }).first().click();
+  const builder = page.getByRole("dialog", { name: "Programme builder" });
+  const workouts = builder.getByRole("tablist").first().getByRole("tab");
+  await expect(workouts).toHaveCount(before.days.length);
+  const removed = before.days[0];
+  await builder.getByRole("button", { name: "Remove workout" }).click();
+  await expect(builder.getByText(`Remove “${removed.name}” and its exercises?`)).toBeVisible();
+  await builder.getByRole("button", { name: "Keep", exact: true }).click();
+  await expect(workouts).toHaveCount(before.days.length);
+  await builder.getByRole("button", { name: "Remove workout" }).click();
+  await builder.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect(workouts).toHaveCount(before.days.length - 1);
+  await builder.getByLabel("Reason for change (saved to client timeline)").fill("Fewer sessions");
+  await builder.getByRole("button", { name: "Save programme", exact: true }).click();
+  await expect(builder).toHaveCount(0);
+  const after = (await state(page)).clients.find((c) => c.name === "Jordan Williams").program;
+  expect(after.days.map((d) => d.id)).not.toContain(removed.id);
+  expect(after.week).not.toContain(removed.id);
+  expect(after.days).toHaveLength(before.days.length - 1);
+});
+
+test("tapping a field or the page shows no green outline, keyboard focus still does, and tall sheets stop below the top", async ({ page }) => {
+  await demoCoach(page);
+  await nav(page, "Clients").click();
+  await page.getByRole("button", { name: "Add client", exact: true }).click();
+  const name = page.getByRole("dialog", { name: "Add a client" }).getByLabel("Full name");
+  await name.click();
+  expect(await name.evaluate((e) => getComputedStyle(e).outlineStyle)).toBe("none");
+  await page.keyboard.press("Escape");
+  await page.locator("#main-content").evaluate((e) => e.focus());
+  expect(await page.locator("#main-content").evaluate((e) => getComputedStyle(e).outlineStyle)).toBe("none");
+  await page.keyboard.press("Tab");
+  const ring = await page.evaluate(() => { const e = document.activeElement; return e && e.matches("button, a") ? getComputedStyle(e).outlineStyle : "not-a-button"; });
+  expect(["solid", "not-a-button"]).toContain(ring);
+  await page.locator(".client-card").filter({ hasText: "Jordan Williams" }).click();
+  await page.getByRole("tab", { name: "Plan", exact: true }).click();
+  await page.getByRole("button", { name: /Edit programme/ }).first().click();
+  const top = await page.getByRole("dialog", { name: "Programme builder" }).evaluate((e) => e.getBoundingClientRect().top);
+  expect(top).toBeGreaterThanOrEqual(16);
+});

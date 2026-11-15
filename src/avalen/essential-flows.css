@@ -251,3 +251,18 @@
 .logger-set-row .set-pending .set-last { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
 /* Programme builder: the button that loads the rest of the exercise library (DR-15). */
 .exercise-library .exercise-library-more { grid-column: 1 / -1; justify-content: center; min-height: 44px; font-weight: 600; }
+
+/* Date fields on iPhone have a built-in minimum width, so in a two-column row they grew past their
+   column, overlapping the field beside them and sticking out of the card. They now shrink to fit,
+   with the date aligned like other text. */
+input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"] {
+  -webkit-appearance: none; appearance: none;
+  display: block; width: 100%; min-width: 0; max-width: 100%;
+  min-height: 48px; text-align: start;
+}
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value, input[type="month"]::-webkit-date-and-time-value { text-align: start; margin: 0; }
+.form-grid > *, .form-grid .field, .field > input, .field > select { min-width: 0; max-width: 100%; }
+/* A section header whose button would wrap: the button moves under the title instead. */
+.ecosystem-stack > .section-head { flex-wrap: wrap; row-gap: 12px; }
+.ecosystem-stack > .section-head > :not(h2) { flex-shrink: 0; }

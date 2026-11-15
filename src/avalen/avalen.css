@@ -56,14 +56,16 @@ select,
 textarea {
   -webkit-tap-highlight-color: transparent;
 }
+/* Keyboard focus ring for buttons, links and other controls. Text fields and dropdowns show focus with
+   their border instead (below), and areas focused by the app itself (tabindex -1) show none. */
 button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
 summary:focus-visible,
-[tabindex]:focus-visible {
+[tabindex]:not([tabindex="-1"]):focus-visible {
   outline: 2px solid var(--green);
   outline-offset: 4px;
+}
+[tabindex="-1"]:focus {
+  outline: none;
 }
 button {
   touch-action: manipulation;
@@ -125,7 +127,10 @@ textarea {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #81d3ad80;
+  border-color: var(--text);
+}
+.search:focus-within {
+  border-color: var(--text);
 }
 input::placeholder,
 textarea::placeholder {

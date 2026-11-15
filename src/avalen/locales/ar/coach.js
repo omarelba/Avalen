@@ -258,4 +258,7 @@ export default {
   'Schedule changes to review: {count}': 'تغييرات في الجدول للمراجعة: {count}',
   'last {weight} × {reps}{value}': 'السابق {weight} × {reps}{value}',
   'Show all {count} exercises': 'عرض كل التمارين ({count})',
+  'Remove workout': 'إزالة التمرين',
+  'Remove “{name}” and its exercises?': 'إزالة «{name}» وتمارينه؟',
+  'this workout': 'هذا التمرين',
 };

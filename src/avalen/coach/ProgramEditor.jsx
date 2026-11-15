@@ -29,6 +29,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
     [search, setSearch] = useState(""),
     [region, setRegion] = useState("All"),
     [showAll, setShowAll] = useState(false),
+    [confirmRemove, setConfirmRemove] = useState(null),
     [error, setError] = useState("");
   const day = draft.days[dayIndex];
   // Monday-first workout ids; a workout removed from the programme becomes a rest day.
@@ -127,6 +128,17 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
         >
           {t('Duplicate workout')}
         </button>
+        {/* Removing a workout also clears it from the week; nothing is saved until "Save programme". */}
+        {day && draft.days.length > 1 && (confirmRemove === day.id
+          ? <span className="template-delete-confirm"><span>{t('Remove “{name}” and its exercises?', { name: t(day.name) || t('this workout') })}</span>
+              <button type="button" className="text-link red" onClick={() => {
+                const id = day.id;
+                change((d) => { d.days = d.days.filter((x) => x.id !== id); if (Array.isArray(d.week)) d.week = d.week.map((x) => (x === id ? null : x)); });
+                setDayIndex(Math.max(0, Math.min(dayIndex, draft.days.length - 2)));
+                setConfirmRemove(null);
+              }}>{t('Remove')}</button>
+              <button type="button" className="text-link" onClick={() => setConfirmRemove(null)}>{t('Keep')}</button></span>
+          : <button type="button" className="text-link red" onClick={() => setConfirmRemove(day.id)}>{t('Remove workout')}</button>)}
       </div>
       {!day && <p className="muted">{t('Add the first workout, then choose which days of the week it falls on.')}</p>}
       {day && <>

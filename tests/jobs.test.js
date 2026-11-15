@@ -8,7 +8,8 @@ import { join } from "node:path";
 import { fixture } from "./helpers/service.js";
 import { runJobs, queueTranscription, jobFor } from "../server/jobs.js";
 test("reminders deduplicate by due period and stop after submission, respecting client local time", async () => {
-  const f = await fixture();
+  // Only check-in reminders are under test, so the client has no plan (and no plan-change notice).
+  const f = await fixture({ plannedFirstClient: false });
   try {
     const [workspace] = await f.store.workspaces.all(),
       data = workspace.data,

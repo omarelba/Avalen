@@ -3,6 +3,7 @@
 import { coachOnly, fail } from "../permissions.js";
 import { formatCode } from "../coach-codes.js";
 import { createWorkspace, newClient } from "../../src/avalen/seed.js";
+import { blankPlan } from "../../src/avalen/plan-week.js";
 import { removeClientData } from "../../src/avalen/account-deletion.js";
 import { randomInt, timingSafeEqual } from "node:crypto";
 import { NOT_HANDLED, body } from "../http-utils.js";
@@ -118,10 +119,9 @@ export function createOpenAccountRoutes(ctx) {
       const data = createWorkspace();
       for (const key of Object.keys(data))
         if (Array.isArray(data[key]) && !["library", "templates", "savedReplies"].includes(key)) data[key] = [];
-      data.clients = [newClient(input.clientName.trim().slice(0, 100), "")];
-      data.clients[0].created = new Date().toISOString().slice(0, 10);
-      data.clients[0].schedule = data.clients[0].schedule.filter((s) => s.date >= data.clients[0].created);
-      data.clients[0].programEnd = new Date(Date.now() + 83 * 86400000).toISOString().slice(0, 10);
+      const today = new Date().toISOString().slice(0, 10);
+      data.clients = [blankPlan(newClient(input.clientName.trim().slice(0, 100), ""), today)];
+      data.clients[0].created = today;
       data.activeClientId = data.clients[0].id;
       data.demo = false;
       data.onboarded = true;

@@ -4,6 +4,7 @@ import { t } from './i18n.js';
 import { attentionFor, dayKey, metrics, offsetDay, round, scheduleDay, shortDate } from './store.js';
 import { analyzeClient } from './ecosystem/intelligence.js';
 import { formatMoney, paymentState } from './payments-model.js';
+import { nutritionPlanFor } from './plan-week.js';
 
 export const PROMPTS = {
   client: [
@@ -84,7 +85,7 @@ function next(data, client, today) {
 }
 
 function protein(data, client, today) {
-  const target = Number(client.nutrition?.p) || 0;
+  const target = Number(nutritionPlanFor(client, dayKey())?.p) || 0;
   if (!target) return { text: t('Your coach hasn’t set a protein target yet.') };
   const logs = data.foodLogs.filter(f => f.clientId === client.id);
   const eaten = round(logs.filter(f => f.date === today).reduce((n, f) => n + Number(f.p || 0), 0));

@@ -5,6 +5,7 @@ import { useApp } from '../context.js';
 import { useState } from 'react';
 import { Dumbbell, ChevronRight, Check, Clock3, Footprints, Lock, ArrowRight, Share2, MessageCircle, Flame, Plus } from 'lucide-react';
 import { dayKey, offsetDay, scheduleDay, shortDate, sum, useFile } from '../store.js';
+import { targetsFor } from '../nutrition-model.js';
 import { groupLabel } from '../exercise-catalogue.js';
 import { exerciseImage } from '../ExerciseMedia.jsx';
 import trainingPortrait from '../../assets/campaign-athlete.webp';
@@ -23,7 +24,7 @@ export function Today() {
   const future = date > dayKey();
   const foods = data.foodLogs.filter(x => x.clientId === client.id && x.date === date);
   const values = data.habitLogs.find(x => x.clientId === client.id && x.date === date)?.values || {};
-  const kcal = sum(foods, 'kcal'), protein = sum(foods, 'p');
+  const kcal = sum(foods, 'kcal'), protein = sum(foods, 'p'), targets = targetsFor(client, date);
   const coachMessage = data.messages.filter(m => m.clientId === client.id && m.from === 'coach').slice(-1)[0];
   const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening';
   const isToday = date === dayKey();
@@ -83,10 +84,10 @@ export function Today() {
           <div className="section-head home-section-head"><h2>{t('Your daily balance')}</h2><span className="muted">{isToday ? t('Today') : shortDate(date)}</span></div>
           <section className="card daily-nutrition" aria-label={t('Nutrition summary')}>
             <div className="balance-heading"><span className="balance-icon"><Flame size={18}/></span><h2>{t('Training fuel')}</h2><button className="icon-btn" aria-label={t('Open nutrition diary')} onClick={() => navigate('plan','Nutrition')}><ArrowRight size={18}/></button></div>
-            <div className="fuel-total"><strong>{kcal.toLocaleString()}</strong><span>{t('of {value} kcal', { value: client.nutrition.kcal.toLocaleString() })}</span></div>
-            <Meter value={kcal} target={client.nutrition.kcal}/>
-            <div className="protein-summary"><span>{t('Protein')}</span><b>{protein} <small>{t('/ {p} g', { p: client.nutrition.p })}</small></b></div>
-            <Meter value={protein} target={client.nutrition.p}/>
+            <div className="fuel-total"><strong>{kcal.toLocaleString()}</strong><span>{t('of {value} kcal', { value: (targets.kcal || 0).toLocaleString() })}</span></div>
+            <Meter value={kcal} target={targets.kcal}/>
+            <div className="protein-summary"><span>{t('Protein')}</span><b>{protein} <small>{t('/ {p} g', { p: targets.p })}</small></b></div>
+            <Meter value={protein} target={targets.p}/>
             <button className="nutrition-diary-link" onClick={() => navigate('plan','Nutrition')}>{t('Open food diary')} <Plus size={16}/></button>
           </section>
           {client.habits.some(h => h.id === 'water') && <Hydration date={date} compact/>}

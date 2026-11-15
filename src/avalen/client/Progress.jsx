@@ -5,6 +5,7 @@ import { ArrowRight, Check, CheckCircle2, ChevronRight, Dumbbell, FileText, Mess
 import { useApp } from '../context.js';
 import { consistencyState, latestMeasurement } from '../validation.js';
 import { dayKey, metrics, offsetDay, round, saveFile, scheduleDay, shortDate, sum, uid } from '../store.js';
+import { targetsFor } from '../nutrition-model.js';
 import { RecoveryMap } from '../RecoveryMap.jsx';
 import { Bars, Button, Empty, Field, Heading, LineChart, Media, Modal, Notice, SectionHead, Stat, Tabs } from '../ui.jsx';
 import { t } from '../i18n.js';
@@ -307,11 +308,11 @@ export function Consistency({ client }) {
     const foods = data.foodLogs.filter(
       (f) => f.clientId === client.id && f.date === date,
     );
+    // Within 15% of that weekday's calorie target; no target set means no score.
+    const kcalTarget = targetsFor(client, date).kcal;
     const nutrition =
-      foods.length &&
-      Math.abs(sum(foods, "kcal") - client.nutrition.kcal) /
-        client.nutrition.kcal <=
-        0.15;
+      foods.length && kcalTarget > 0 &&
+      Math.abs(sum(foods, "kcal") - kcalTarget) / kcalTarget <= 0.15;
     const h =
       data.habitLogs.find((h) => h.clientId === client.id && h.date === date)
         ?.values || {};

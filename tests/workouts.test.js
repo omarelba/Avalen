@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createWorkspace } from "../src/avalen/seed.js";
 import { foundations } from "../src/avalen/ecosystem/memory.js";
 import { projection } from "../server/permissions.js";
-import { fixture } from "./helpers/service.js";
+import { fixture, givePlan } from "./helpers/service.js";
 
 // A workspace as stored before Phase 2: every workout inside the JSON document.
 async function legacyWorkspace(f, data) {
@@ -68,6 +68,7 @@ test("a workout logged in the app is stored under the client's relationship, and
   try {
     const { code } = await f.call("/api/coach-code", { account: f.coach });
     const client = await f.call("/api/signup/client", { method: "POST", body: { name: "Maya Chen", email: "maya@test.app", password: "client-password-123", code } });
+    await givePlan(f, client.user.clientId);
     const relationship = await f.db.get("SELECT * FROM coaching_relationships WHERE client_id=$1", [client.user.clientId]);
     assert.equal(relationship.status, "active");
     assert.equal(relationship.client_user_id, client.user.id, "the relationship is linked to the client's login");
@@ -102,6 +103,7 @@ test("removing a client ends the relationship but keeps their workouts; deleting
   try {
     const { code } = await f.call("/api/coach-code", { account: f.coach });
     const client = await f.call("/api/signup/client", { method: "POST", body: { name: "Liam Parker", email: "liam@test.app", password: "client-password-123", code } });
+    await givePlan(f, client.user.clientId);
     const current = await f.call("/api/workspace", { account: client });
     const data = structuredClone(current.data);
     data.sessions.push({ id: "kept", clientId: client.user.clientId, date: new Date().toISOString().slice(0, 10), dayId: data.clients[0].program.days[0].id, title: "Lower Body A", sets: [{ name: "Back squat", exerciseId: "squat", set: 1, weight: 80, reps: 5, kind: "Standard", skipped: false }], startedAt: Date.now(), finishedAt: new Date().toISOString(), duration: 600, prs: [] });

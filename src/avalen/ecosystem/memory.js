@@ -23,6 +23,9 @@ export function foundations(data) {
       : [];
   for (const key of ecosystemCollections) data[key] ||= [];
   data.payments ||= [];
+  // The coach's reusable plans: training programmes and weekly nutrition.
+  data.templates ||= [];
+  data.nutritionTemplates ||= [];
   data.ecosystemVersion = 1;
   return data;
 }

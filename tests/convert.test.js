@@ -5,7 +5,7 @@ import { join } from "node:path";
 import pg from "pg";
 import { randomBytes } from "node:crypto";
 import { sqliteToPostgres } from "../server/db/convert.js";
-import { fixture, testingPostgres } from "./helpers/service.js";
+import { fixture, givePlan, testingPostgres } from "./helpers/service.js";
 import { openStore } from "../server/store/index.js";
 
 const onPostgres = { skip: !testingPostgres && "runs under pnpm test:postgres" };
@@ -35,6 +35,7 @@ test("postgres: a SQLite workspace converts exactly, and the converted server si
     const { code } = await f.call("/api/coach-code", { account: f.coach });
     const client = await f.call("/api/signup/client", { method: "POST", body: { name: "Maya Chen", email: "maya@test.app", password: "client-password-123", code } });
     assert.equal(client.status, 200);
+    await givePlan(f, client.user.clientId);
     const today = new Date().toISOString().slice(0, 10);
     await f.call("/api/wearables/upload", { method: "POST", account: client, body: { provider: "manual", days: [{ date: today, metrics: { sleepMinutes: 420 } }] } });
     const current = await f.call("/api/workspace", { account: client });

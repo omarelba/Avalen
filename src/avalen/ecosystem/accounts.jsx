@@ -80,7 +80,9 @@ export function AccountGate({ children }) {
     setBusy(true);
     setError("");
     try {
-      const fields = Object.fromEntries(new FormData(e.currentTarget));
+      const { confirmPassword, ...fields } = Object.fromEntries(new FormData(e.currentTarget));
+      // New passwords are typed twice so a typo can't lock someone out.
+      if (mode !== "login" && fields.password !== confirmPassword) throw new Error(t("The passwords don’t match. Type the same password in both fields."));
       const path = { coach: "/signup/coach", client: "/signup/client" }[mode] || `/${mode}`;
       const result = await request(path, { method: "POST", body: fields });
       acceptConnection(result);
@@ -111,6 +113,7 @@ export function AccountGate({ children }) {
         setModeState("reset");
         setNotice(t(result.message || "If an account exists for that email, we’ve sent a 6-digit code. It works for 15 minutes."));
       } else {
+        if (fields.password !== fields.confirmPassword) throw new Error(t("The passwords don’t match. Type the same password in both fields."));
         await request("/password/reset", { method: "POST", body: { email: fields.email, code: String(fields.code || "").trim(), password: fields.password } });
         setResetEmail(fields.email);
         setModeState("login");
@@ -163,6 +166,7 @@ export function AccountGate({ children }) {
             <>
               <Field label={t('6-digit code')} name="code" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} dir="ltr" className="coach-code-input" />
               <Field label={t('New password')} name="password" type="password" required minLength={12} maxLength={200} autoComplete="new-password" hint={t('At least 12 characters')} />
+              <Field label={t('Confirm new password')} name="confirmPassword" type="password" required minLength={12} maxLength={200} autoComplete="new-password" />
             </>
           )}
           {error && <p role="alert" className="error">{error}</p>}
@@ -203,6 +207,7 @@ export function AccountGate({ children }) {
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             hint={mode === "login" ? undefined : t('At least 12 characters')}
           />
+          {mode !== "login" && <Field label={t('Confirm password')} name="confirmPassword" type="password" required minLength={12} maxLength={200} autoComplete="new-password" />}
           {error && <p role="alert" className="error">{error}</p>}
           <Button type="submit" disabled={busy || !status}>
             {busy

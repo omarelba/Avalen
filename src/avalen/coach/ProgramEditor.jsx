@@ -1,5 +1,6 @@
-// The programme builder: a coach assembles a client's or template's training days
-// from the exercise catalogue, with per-exercise prescriptions and media.
+// The programme builder: a coach assembles a client's or template's workouts from the
+// exercise catalogue, with per-exercise prescriptions and media, and chooses which
+// workout falls on each weekday. That week repeats for the length of the programme.
 import { useMemo, useRef, useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { useApp } from '../context.js';
@@ -8,6 +9,7 @@ import { programError } from '../validation.js';
 import { saveFile, uid } from '../store.js';
 import { CustomExercise } from '../insights.jsx';
 import { BACKGROUNDS, Button, Field, Modal, Tabs } from '../ui.jsx';
+import { WEEKDAYS, defaultWeek } from '../plan-week.js';
 import { matchesSearch, t } from '../i18n.js';
 import { REGIONS, groupLabel, libraryWithCatalogue, planExercise, regionOf } from '../exercise-catalogue.js';
 
@@ -15,7 +17,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
   const { data } = useApp();
   const uploadLock = useRef(false);
   const [uploading, setUploading] = useState(false);
-  const editor = useEditDraft(`programme.${draftKey}`, { plan: program, reason: '' });
+  const editor = useEditDraft(`programme.${draftKey}`, { plan: { ...program, week: program.week || defaultWeek(program) }, reason: '' });
   const draft = editor.value.plan, reason = editor.value.reason;
   const setDraft = value => editor.setValue(prev => ({ ...prev, plan: typeof value === 'function' ? value(prev.plan) : value }));
   const setReason = reason => editor.setValue(prev => ({ ...prev, reason }));
@@ -24,6 +26,8 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
     [region, setRegion] = useState("All"),
     [error, setError] = useState("");
   const day = draft.days[dayIndex];
+  // Monday-first workout ids; a workout removed from the programme becomes a rest day.
+  const week = (draft.week || defaultWeek(draft)).map((id) => (draft.days.some((d) => d.id === id) ? id : null));
   const choices = useMemo(() => libraryWithCatalogue(data.library).filter((e) => (region === "All" || regionOf(e.group) === region) && matchesSearch(search, [e.name, e.equipment, groupLabel(e.group)])), [data.library, region, search]);
   function change(fn) {
     setError('');
@@ -90,7 +94,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
             change((d) =>
               d.days.push({
                 id: uid(),
-                name: `Day ${d.days.length + 1}`,
+                name: `Workout ${d.days.length + 1}`,
                 cover: 0,
                 minutes: 45,
                 exercises: [],
@@ -99,10 +103,11 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
             setDayIndex(draft.days.length);
           }}
         >
-          {t('+ Add day')}
+          {t('+ Add workout')}
         </button>
         <button
           className="text-link"
+          disabled={!day}
           onClick={() => {
             change((d) =>
               d.days.push({
@@ -115,12 +120,14 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
             setDayIndex(draft.days.length);
           }}
         >
-          {t('Duplicate day')}
+          {t('Duplicate workout')}
         </button>
       </div>
+      {!day && <p className="muted">{t('Add the first workout, then choose which days of the week it falls on.')}</p>}
+      {day && <>
       <div className="card">
         <Field
-          label={t('Day name')}
+          label={t('Workout name')}
           maxLength={70}
           value={day.name}
           onChange={(e) =>
@@ -289,6 +296,21 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
           change((d) => d.days[dayIndex].exercises.push({ ...ex, id: uid() }))
         }
       />
+      </>}
+      <section className="card programme-week" aria-label={t('Your week')}>
+        <h3>{t('Your week')}</h3>
+        <p className="muted">{t('Choose a workout or a rest day for each day. This week repeats for the length of the programme.')}</p>
+        <div className="programme-week-days">
+          {WEEKDAYS.map((name, i) => (
+            <Field key={name} label={t(name)}>
+              <select value={week[i] || 'rest'} disabled={!draft.days.length} onChange={(e) => change((d) => { d.week = week.slice(); d.week[i] = e.target.value === 'rest' ? null : e.target.value; })}>
+                <option value="rest">{t('Rest day')}</option>
+                {draft.days.map((w) => <option key={w.id} value={w.id}>{w.name.trim() ? t(w.name) : t('Untitled workout')}</option>)}
+              </select>
+            </Field>
+          ))}
+        </div>
+      </section>
       <Field label={t('Reason for change (saved to client timeline)')}>
         <textarea value={reason} onChange={(e) => setReason(e.target.value)} />
       </Field>
@@ -301,9 +323,9 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
         disabled={uploading}
         onSave={async() => {
           if (uploadLock.current) return;
-          const error = programError(draft);
+          const error = programError({ ...draft, week });
           if (error) { setError(error); return; }
-          const result = structuredClone(draft);
+          const result = structuredClone({ ...draft, week });
           result.name = result.name.trim();
           result.weeks = Number(result.weeks);
           for (const day of result.days) {

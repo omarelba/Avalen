@@ -18,7 +18,7 @@ test('nutrition coach drafts survive tabs and reload, publish only after explici
  await expect(p.getByRole('button',{name:'Save nutrition plan',exact:true})).toBeInViewport();
  await p.getByRole('tab',{name:'Overview',exact:true}).click(); await p.getByRole('tab',{name:'Nutrition',exact:true}).click(); await expect(p.getByLabel('Calories',{exact:true})).toHaveValue('2777');
  await p.reload(); await expect(p.getByLabel('Calories',{exact:true})).toHaveValue('2777'); expect((await state(p)).clients[0].nutrition.kcal).toBe(original);
- await p.getByRole('button',{name:'Save nutrition plan',exact:true}).click(); expect((await state(p)).clients[0].nutrition.kcal).toBe(2777);
+ await p.getByRole('button',{name:'Save nutrition plan',exact:true}).click(); expect((await state(p)).clients[0].nutrition.days[(new Date().getDay()+6)%7].kcal).toBe(2777);
  await p.getByLabel('Calories',{exact:true}).fill('2888'); await expect(p.getByText('The assigned plan changed since this draft was started.',{exact:false})).toHaveCount(0);
  await p.getByRole('button',{name:'Discard draft',exact:true}).click(); await p.getByRole('dialog',{name:'Discard this draft?'}).getByRole('button',{name:'Discard draft',exact:true}).click(); await expect(p.getByLabel('Calories',{exact:true})).toHaveValue('2777');
 });

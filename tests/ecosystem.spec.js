@@ -287,6 +287,7 @@ test("intelligence approved change preserves programme versions and private deci
   let state = await service.call("/api/workspace", { account: service.coach }),
     client = state.data.clients[0];
   const ex = client.program.days[0].exercises[0];
+  const programVersions = state.data.revisions.filter((r) => r.field === "program").length;
   state.data.checkins = [
     {
       id: "low-one",
@@ -335,7 +336,7 @@ test("intelligence approved change preserves programme versions and private deci
   );
   expect(
     state.data.revisions.filter((r) => r.field === "program"),
-  ).toHaveLength(2);
+  ).toHaveLength(programVersions + 1);
   expect(state.data.insightDecisions).toHaveLength(1);
   await page.getByRole("tab", { name: "Coaching Memory", exact: true }).click();
   await expect(

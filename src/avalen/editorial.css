@@ -528,3 +528,27 @@ input::file-selector-button { background: var(--surface-raised); color: var(--te
 .plan-day-row > i > em { display: block; height: 100%; background: var(--text); opacity: .7; }
 .plan-day-row.is-over > i > em { opacity: 1; }
 .plan-day-row .plan-day-missing { font-style: italic; }
+/* Weekday nutrition plan: the selected day's name with the copy action beside it. */
+.nutrition-day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0 4px; }
+.nutrition-day-head h3 { margin: 0; }
+/* Programme builder: the repeating week, one row per weekday. */
+.programme-week { display: grid; gap: 10px; }
+.programme-week h3 { margin: 0; }
+.programme-week-days { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+/* Coach plan tab: the week the programme repeats. */
+.programme-week-summary ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.programme-week-summary li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.programme-week-summary li:last-child { border-bottom: 0; }
+.programme-week-summary li span { color: var(--muted); }
+/* Home nutrition card before the coach sets targets: shown at every screen size. */
+.nutrition-home-empty { margin: 8px 0 12px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+/* Coach plan tab: choosing or saving a programme template. */
+.programme-templates { display: grid; gap: 10px; margin-top: 12px; }
+.programme-template-pick { display: grid; gap: 8px; }
+/* Nutrition editor: loading a template, and saving the plan as one. */
+.nutrition-template-pick, .nutrition-template-save { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 8px 0 12px; }
+.nutrition-template-pick > label, .nutrition-template-save > label { flex: 1 1 220px; }
+.nutrition-template-save { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+/* Programs: confirming a template delete in place. */
+.template-delete-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.template-delete-confirm > span { color: var(--muted); font-size: 13px; }

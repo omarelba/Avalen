@@ -204,7 +204,7 @@ test("coach programme and member post are reflected on client side", async ({
   await page.getByRole("tab", { name: "Plan", exact: true }).click();
   await page.getByRole("button", { name: "Edit programme" }).click();
   await page
-    .getByLabel("Day name", { exact: true })
+    .getByLabel("Workout name", { exact: true })
     .fill("Upper Body · Quality First");
   await page
     .getByRole("button", { name: "Save programme", exact: true })

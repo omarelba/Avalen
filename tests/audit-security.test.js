@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { workspaceChanges } from "../src/avalen/ecosystem/changes.js";
-import { fixture } from "./helpers/service.js";
+import { fixture, givePlan } from "./helpers/service.js";
 
 const today = new Date().toISOString().slice(0, 10);
 const count = async (f, sql, params = []) => Number((await f.db.get(sql, params)).n);
@@ -33,6 +33,7 @@ async function world() {
   const f = await fixture();
   const { code } = await f.call("/api/coach-code", { account: f.coach });
   const x = await f.call("/api/signup/client", { method: "POST", body: { name: "Client X", email: "x@test.app", password: "client-password-123", code } });
+  await givePlan(f, x.user.clientId);
   const yId = f.coach.data.clients[0].id;
   const invite = await f.call("/api/invitations", { method: "POST", account: f.coach, body: { clientId: yId } });
   const y = await f.call("/api/join", { method: "POST", body: { invite: invite.invite, email: "y@test.app", password: "client-password-123" } });

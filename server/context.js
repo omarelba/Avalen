@@ -16,6 +16,7 @@ import { paymobService } from "./paymob.js";
 import { wearableService } from "./wearables.js";
 import { foundations, recordChanges, memory } from "../src/avalen/ecosystem/memory.js";
 import { createWorkspace, newClient } from "../src/avalen/seed.js";
+import { blankPlan } from "../src/avalen/plan-week.js";
 import { projection } from "./permissions.js";
 import { hash, token, passwordHash, checkPassword } from "./crypto-utils.js";
 import { emailService } from "./email.js";
@@ -53,10 +54,10 @@ export async function createContext({
 
   // A client added to a workspace today: dated from today, with a 12-week programme.
   const freshClient = (name, email) => {
-    const client = newClient(name.trim().slice(0, 100), email);
-    client.created = new Date().toISOString().slice(0, 10);
-    client.schedule = client.schedule.filter((s) => s.date >= client.created);
-    client.programEnd = new Date(Date.now() + 83 * 86400000).toISOString().slice(0, 10);
+    // Nothing is planned until the coach sets the programme, nutrition and habits.
+    const today = new Date().toISOString().slice(0, 10);
+    const client = blankPlan(newClient(name.trim().slice(0, 100), email), today);
+    client.created = today;
     return client;
   };
   // A new coach workspace with no demo records.

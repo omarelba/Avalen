@@ -8,7 +8,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { workspaceChanges } from "../src/avalen/ecosystem/changes.js";
 import { canonicalJson, sameData } from "../src/avalen/ecosystem/canonical.js";
-import { fixture } from "./helpers/service.js";
+import { fixture, givePlan } from "./helpers/service.js";
 
 const today = new Date().toISOString().slice(0, 10);
 const count = async (f, sql, params = []) => Number((await f.db.get(sql, params)).n);
@@ -57,6 +57,7 @@ function iPhoneApp(f, cookie) {
 async function coachAndClient(f) {
   const { code } = await f.call("/api/coach-code", { account: f.coach });
   const signup = await f.call("/api/signup/client", { method: "POST", body: { name: "Maya Chen", email: "maya@test.app", password: "client-password-123", code } });
+  await givePlan(f, signup.user.clientId);
   const client = iPhoneApp(f), coach = iPhoneApp(f);
   assert.equal((await client.signIn("maya@test.app", "client-password-123")).status, 200);
   assert.equal((await coach.signIn("coach@test.app", "strong-password-123")).status, 200);

@@ -9,6 +9,7 @@ import { useWorkspaceSave } from '../workspace-save.js';
 import { connection } from '../ecosystem/connection.js';
 import { attentionFor, dayKey, metrics, offsetDay } from '../store.js';
 import { newClient } from '../seed.js';
+import { blankPlan } from '../plan-week.js';
 import { useWearableSummary, WearableLine } from '../wearables.jsx';
 import { Avatar, Button, Empty, Field, Heading, IconButton, Modal, Notice, Tabs } from '../ui.jsx';
 import { t } from '../i18n.js';
@@ -132,9 +133,8 @@ export function Clients() {
             onSubmit={async (e) => {
               e.preventDefault();
               const fields = new FormData(e.currentTarget),
-                c = newClient(fields.get("name"), fields.get("email"));
+                c = blankPlan(newClient(fields.get("name"), fields.get("email")), dayKey());
               c.created = dayKey();
-              c.schedule = c.schedule.filter((s) => s.date >= dayKey());
               if (!await save((d) => d.clients.push(c))) return;
               setAdding(false);
               selectClient(c.id, "Plan");

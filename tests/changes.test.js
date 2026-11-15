@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { workspaceChanges, applyChanges } from "../src/avalen/ecosystem/changes.js";
-import { fixture } from "./helpers/service.js";
+import { fixture, givePlan } from "./helpers/service.js";
 
 test("changes list exactly the records an edit added, edited or removed", () => {
   const before = { foodLogs: [{ id: "a", kcal: 1 }, { id: "b", kcal: 2 }], settings: { theme: "dark" } };
@@ -40,7 +40,11 @@ async function patch(f, account, seen, edit) {
 }
 async function twoClients(f) {
   const { code } = await f.call("/api/coach-code", { account: f.coach });
-  const join = (name, email) => f.call("/api/signup/client", { method: "POST", body: { name, email, password: "client-password-123", code } });
+  const join = async (name, email) => {
+    const client = await f.call("/api/signup/client", { method: "POST", body: { name, email, password: "client-password-123", code } });
+    await givePlan(f, client.user.clientId);
+    return client;
+  };
   return [await join("Maya Chen", "maya@test.app"), await join("Noah Patel", "noah@test.app")];
 }
 const food = (client, id) => ({ id, clientId: client.user.clientId, date: "2026-11-14", name: "Oats", meal: "Breakfast", kcal: 300, p: 10, c: 50, f: 6 });

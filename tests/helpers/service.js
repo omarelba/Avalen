@@ -5,6 +5,21 @@ import pg from "pg";
 import { randomBytes } from "node:crypto";
 import { createService } from "../../server/app.js";
 import { command } from "../../src/avalen/ecosystem/actions.js";
+import { newClient } from "../../src/avalen/seed.js";
+import { workspaceChanges } from "../../src/avalen/ecosystem/changes.js";
+
+// New clients start with nothing planned. Tests that need a programme, nutrition targets
+// and habits have the coach set the sample ones first, through the API like a coach would.
+export async function givePlan(f, clientId, account = f.coach) {
+  const seen = await f.call("/api/workspace", { account });
+  const next = structuredClone(seen.data);
+  const client = next.clients.find((c) => c.id === clientId);
+  const sample = newClient(client.name, client.email, client.id);
+  Object.assign(client, { program: sample.program, nutrition: sample.nutrition, habits: sample.habits, schedule: sample.schedule.filter((s) => s.date >= client.created) });
+  const res = await f.call("/api/workspace", { method: "PATCH", account, body: { revision: seen.revision, changes: workspaceChanges(seen.data, next) } });
+  if (res.status !== 200) throw new Error(`givePlan: ${res.status} ${res.error}`);
+  return res;
+}
 
 // AVALEN_TEST_DB=postgres (set by `pnpm test:postgres`) gives every fixture its own
 // empty PostgreSQL database on the throwaway server; otherwise a SQLite file.
@@ -73,6 +88,12 @@ export async function fixture(options = {}) {
       clientName: "Client One",
     },
   });
+  const f = { ...service, base, call, coach };
+  // The owner's first client gets the sample plan unless a test asks for a client with none.
+  if (options.plannedFirstClient !== false && coach.status === 200) {
+    const planned = await givePlan(f, coach.data.clients[0].id, coach);
+    Object.assign(coach, { data: planned.data, revision: planned.revision });
+  }
   return {
     ...service,
     base,

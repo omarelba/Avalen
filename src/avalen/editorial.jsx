@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronRight, Clock3, Dumbbell, Footprints, MessageCircle, Play, Search, Share2, Star, Target } from 'lucide-react';
 import { useApp } from './context.js';
 import { dayKey, download, historyFor, offsetDay, scheduleDay, shortDate, sum, useFile } from './store.js';
+import { hasProgram } from './plan-week.js';
 import { bootWait, leaveBoot, nameBoot } from './BrandMark.jsx';
 import { Avatar, Button, Empty, Field, IconButton, Modal } from './ui.jsx';
 import { ResumeWorkout } from './resume.jsx';
@@ -83,6 +84,8 @@ export function EditorialHome() {
   const { data, client, navigate, viewSession, openWorkout, openShare, ask, intakeDue, openIntake } = useApp();
   const [mealEntry,setMealEntry]=useState(null), [plannedMeal, setPlannedMeal] = useState(null), [editingHome, setEditingHome] = useState(false);
   const today = dayKey(), day = scheduleDay(client, today);
+  // A client whose coach hasn't built a programme yet sees that, not a recovery day.
+  const planReady = hasProgram(client);
   const weekStart = offsetDay(-((new Date().getDay() + 6) % 7));
   const weekEnd = offsetDay(6, weekStart);
   const weekSessions = data.sessions.filter(s => s.clientId === client.id && s.date >= weekStart && s.date <= weekEnd);
@@ -102,18 +105,22 @@ export function EditorialHome() {
   const coachMessage = data.messages.filter(m => m.clientId === client.id && m.from === 'coach').at(-1);
   const homeWidgets = {
     session: <>
-    {!data.drafts[client.id] && <section className={`home-today-session ${completedToday ? 'is-complete' : day ? 'is-planned' : 'is-recovery'}`} aria-label={t('Today’s plan')}>
+    {!data.drafts[client.id] && !planReady && !completedToday && <section className="home-today-session is-recovery" aria-label={t('Today’s plan')}>
+      <img src={sessionPhoto(null)} alt=""/>
+      <div className="home-today-content"><span className="eyebrow">{t('YOUR TRAINING')}</span><h2>{t('Your coach is preparing your plan.')}</h2><p>{t('Your workouts appear here as soon as your coach sets them.')}</p></div>
+    </section>}
+    {!data.drafts[client.id] && (planReady || completedToday) && <section className={`home-today-session ${completedToday ? 'is-complete' : day ? 'is-planned' : 'is-recovery'}`} aria-label={t('Today’s plan')}>
       <img data-session-hero="" style={{viewTransitionName: connectedHero === `${day?.id}:${today}` ? 'session-hero' : undefined}} src={todayCover || sessionPhoto(day)} alt=""/>
       <div className="home-today-content"><span className="eyebrow">{completedToday ? t('TODAY · COMPLETE') : day ? t('TODAY’S SESSION') : t('TODAY · RECOVERY')}</span><h2>{day?.name || t('Room to recover.')}</h2><p>{day ? `${t('{count} min', {count: day.minutes})} · ${t('{count} exercises', {count: day.exercises.length})} · ${t(sessionCategory(day))}` : t('Your next session is coming. Keep your recovery habits in reach.')}</p>
       <div>{day ? <><Button onClick={() => completedToday ? openShare(completedToday) : openWorkout(day,today)}>{completedToday ? t('View workout result') : t('Start Workout')}<ArrowRight size={18}/></Button><button className="hero-detail" aria-label={t('View {name}', {name: day.name})} onClick={event => { document.querySelectorAll('[data-session-hero]').forEach(el => { el.style.viewTransitionName = 'none'; }); const image = event.currentTarget.closest('section').querySelector('img'); image.style.viewTransitionName = 'session-hero'; image.dataset.sessionSource = day.id; connectedHero = `${day.id}:${today}`; viewSession(day,today); }}>{t('Session details')}</button></> : <Button onClick={() => navigate('plan','Habits')}>{t('Recovery habits')} <ArrowRight size={18}/></Button>}</div></div>
     </section>}
     </>,
-    essentials: <section className="home-essentials" aria-label={t('Daily essentials')}><button className={checkinDue.due ? 'is-due' : ''} onClick={() => navigate('coach', 'Check-in')}><CalendarDays size={19}/><span><b>{t('Check-in')}</b><small>{checkinDue.overdue ? t('Overdue · send your update') : checkinDue.due ? t('Due today') : t('Next {date}', {date: shortDate(checkinDue.dueDate)})}</small></span><ChevronRight size={16}/></button><button onClick={() => navigate('plan', 'Habits')}><Footprints size={19}/><span><b>{t('Daily habits')}</b><small>{client.habits.length ? t('{done} of {count} targets reached', {done: habitsDone, count: client.habits.length}) : t('View recovery habits')}</small></span><ChevronRight size={16}/></button></section>,
+    essentials: <section className="home-essentials" aria-label={t('Daily essentials')}><button className={checkinDue.due ? 'is-due' : ''} onClick={() => navigate('coach', 'Check-in')}><CalendarDays size={19}/><span><b>{t('Check-in')}</b><small>{checkinDue.overdue ? t('Overdue · send your update') : checkinDue.due ? t('Due today') : t('Next {date}', {date: shortDate(checkinDue.dueDate)})}</small></span><ChevronRight size={16}/></button><button onClick={() => navigate('plan', 'Habits')}><Footprints size={19}/><span><b>{t('Daily habits')}</b><small>{client.habits.length ? t('{done} of {count} targets reached', {done: habitsDone, count: client.habits.length}) : t('No habits set yet')}</small></span><ChevronRight size={16}/></button></section>,
     wearables: <ClientWearableHome/>,
     recovery: <RecoveryMap compact clientId={client.id} day={completedToday ? null : day} onOpen={() => navigate('progress','Recovery')}/>,
     nutrition: <CoachNutritionHome onPhoto={()=>setMealEntry('photo')} onAdd={()=>setMealEntry('food')} onPlanMeal={setPlannedMeal}/>,
     updates: <div className="home-coaching-updates"><CoachingUpdates/></div>,
-    training: <>
+    training: planReady && <>
     <div className="home-training-section"><div className="home-training-heading"><div><span className="eyebrow">{t('YOUR COACH’S PROGRAMME')}</span><h2>{t('Up next.')}</h2></div><button aria-label={t('Open training plan')} onClick={()=>navigate('plan','Training')}><ArrowRight size={20}/></button></div>
     <div className="home-training-summary"><span>{t(client.program.name)}</span><span><MotionNumber value={weekSessions.length} identity="week-sessions"/> / {t('{count} sessions this week', {count: planned})}</span></div>
     <WeeklyProgress value={weekSessions.length} target={planned} identity={`weekly:${weekStart}`}/>

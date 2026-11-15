@@ -3,6 +3,7 @@ import { useAnimatedNumber, MotionNumber } from './motion.jsx';
 import { ArrowRight, Camera, ChevronRight, Plus, Utensils } from 'lucide-react';
 import { useApp } from './context.js';
 import { dayKey, sum } from './store.js';
+import { nutritionPlanFor } from './plan-week.js';
 
 import { t } from './i18n.js';
 import { MealFoodsList } from './MealFoods.jsx';
@@ -16,8 +17,15 @@ export function CoachNutritionHome({onPhoto, onAdd, onPlanMeal}) {
   const {data,client,navigate} = useApp();
   const foods=data.foodLogs.filter(f=>f.clientId===client.id && f.date===dayKey());
   const kcal=sum(foods,'kcal');
-  const remaining=client.nutrition.kcal-kcal;
-  const target=client.nutrition;
+  // Today's weekday plan; none yet when the coach hasn't set nutrition.
+  const target=nutritionPlanFor(client, dayKey());
+  if (!target) return <section className="home-nutrition" aria-label={t('Today’s nutrition')}>
+    <div className="home-section-label"><span>{t('NUTRITION')}</span><button onClick={()=>navigate('nutrition')}>{t('Your diary')} <ArrowRight size={15}/></button></div>
+    <div className="nutrition-home-title"><div><h2>{t('Fuel your progress.')}</h2></div></div>
+    <p className="nutrition-home-empty">{t('Your coach hasn’t set your nutrition targets yet. You can still log what you eat.')}</p>
+    <div className="nutrition-home-actions"><button onClick={onPhoto}><Camera size={18}/>{t('Photo meal')}</button><button onClick={onAdd}><Plus size={18}/>{t('Log food')}</button></div>
+  </section>;
+  const remaining=target.kcal-kcal;
   const meal = new Date().getHours() < 11 ? 'Breakfast' : new Date().getHours() < 16 ? 'Lunch' : 'Dinner';
   const nextMeal=(target.meals||[]).find(m=>m.name===meal && !foods.some(f=>f.meal===m.name)) || (target.meals||[]).find(m=>!foods.some(f=>f.meal===m.name));
   return <section className="home-nutrition" aria-label={t('Today’s nutrition')}>
@@ -33,6 +41,8 @@ export function CoachNutritionHome({onPhoto, onAdd, onPlanMeal}) {
 
 export function CoachMealPlan({onLog}) {
   const {data,client}=useApp();
-  const meals=client.nutrition.meals || [];
-  return <section className="coach-meal-plan" aria-label={t('Coach nutrition plan')}><div className="home-section-label"><span>{t('FROM YOUR COACH')}</span><span>{client.nutrition.mode==='Structured'?t('Prescribed meals'):t('Suggested meals')}</span></div><h2>{t('Your plan, on a plate.')}</h2><p>{client.nutrition.mode==='Structured' ? t('Follow the meals set by your coach. Adjust the logged portion to what you ate.') : t('Your daily macro targets come first. These meal ideas are from your coach.')}</p>{meals.length ? meals.map((m,i)=><div className="planned-meal" key={`${m.name}-${i}`}><span className="planned-meal-number">{String(i+1).padStart(2,'0')}</span><div><span>{t(m.name)}</span><h3>{m.description || m.name}</h3><MealFoodsList items={m.items}/><p>{Number(m.kcal || 0).toLocaleString()} kcal{m.p != null && t(' · {p}g protein', { p: m.p })}</p></div><button aria-label={t('Log planned {name}', { name: m.name })} onClick={()=>onLog(m)}><Plus size={20}/></button></div>) : <div className="meal-plan-empty"><Utensils size={23}/><p>{t('Your coach has set your daily targets. Meal suggestions will appear here when added.')}</p></div>}<div className="coach-plan-attribution"><span className="plan-coach-initials">{data.coach.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</span><span>{t(data.coach.name)}<small>{t('Your coach · personalised nutrition')}</small></span></div></section>;
+  const plan=nutritionPlanFor(client, dayKey());
+  if (!plan) return null;
+  const meals=plan.meals || [];
+  return <section className="coach-meal-plan" aria-label={t('Coach nutrition plan')}><div className="home-section-label"><span>{t('FROM YOUR COACH')}</span><span>{plan.mode==='Structured'?t('Prescribed meals'):t('Suggested meals')}</span></div><h2>{t('Your plan, on a plate.')}</h2><p>{plan.mode==='Structured' ? t('Follow the meals set by your coach. Adjust the logged portion to what you ate.') : t('Your daily macro targets come first. These meal ideas are from your coach.')}</p>{meals.length ? meals.map((m,i)=><div className="planned-meal" key={`${m.name}-${i}`}><span className="planned-meal-number">{String(i+1).padStart(2,'0')}</span><div><span>{t(m.name)}</span><h3>{m.description || m.name}</h3><MealFoodsList items={m.items}/><p>{Number(m.kcal || 0).toLocaleString()} kcal{m.p != null && t(' · {p}g protein', { p: m.p })}</p></div><button aria-label={t('Log planned {name}', { name: m.name })} onClick={()=>onLog(m)}><Plus size={20}/></button></div>) : <div className="meal-plan-empty"><Utensils size={23}/><p>{t('Your coach has set your daily targets. Meal suggestions will appear here when added.')}</p></div>}<div className="coach-plan-attribution"><span className="plan-coach-initials">{data.coach.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</span><span>{t(data.coach.name)}<small>{t('Your coach · personalised nutrition')}</small></span></div></section>;
 }

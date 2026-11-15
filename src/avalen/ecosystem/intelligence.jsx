@@ -46,7 +46,7 @@ export function Intelligence({ client = null, compact = false }) {
     const c = item.client;
     if (type === "nutrition") {
       const v = Object.fromEntries(
-        ["kcal", "p", "c", "f"].map((k) => [k, c.nutrition[k]]),
+        ["kcal", "p", "c", "f"].map((k) => [k, c.nutrition?.[k] ?? ""]),
       );
       setValues(v);
       setBefore(v);

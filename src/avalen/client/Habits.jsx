@@ -38,6 +38,7 @@ export function Habits() {
       <p className="muted intro-copy">
         {t('Small actions, repeated. Your coach sets the targets; you make them happen.')}
       </p>
+      {!client.habits.length && <p className="card muted">{t('Your coach hasn’t set any habits yet. They appear here as soon as your coach adds them.')}</p>}
       {client.habits.some(h => h.id === 'water') && <Hydration/>}
       <div className="habit-grid">
         {client.habits.map((h, i) => (

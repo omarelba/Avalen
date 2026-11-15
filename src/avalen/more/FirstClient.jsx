@@ -6,6 +6,7 @@ import { AppContext } from '../context.js';
 import { useWorkspaceSave } from '../workspace-save.js';
 import { connection, refreshConnection } from '../ecosystem/connection.js';
 import { newClient } from '../seed.js';
+import { blankPlan } from '../plan-week.js';
 import { dayKey } from '../store.js';
 import { Button, Field, Heading, Modal, SectionHead } from '../ui.jsx';
 import { t } from '../i18n.js';
@@ -46,9 +47,8 @@ export function FirstClient({ onAccount }) {
         <Modal title={t('Add a client')} onClose={() => setAdding(false)} canClose={!saving}>
           <form onSubmit={async (e) => {
             e.preventDefault();
-            const fields = new FormData(e.currentTarget), c = newClient(String(fields.get('name')).trim(), String(fields.get('email')).trim());
+            const fields = new FormData(e.currentTarget), c = blankPlan(newClient(String(fields.get('name')).trim(), String(fields.get('email')).trim()), dayKey());
             c.created = dayKey();
-            c.schedule = c.schedule.filter((s) => s.date >= dayKey());
             if (await save((d) => { d.clients.push(c); d.activeClientId = c.id; })) setAdding(false);
           }}>
             <fieldset className="save-fields" disabled={saving}>

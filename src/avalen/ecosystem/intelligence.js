@@ -408,6 +408,9 @@ export function decideInsight(data, user, client, p) {
         !Number.isFinite(values.kcal)
       )
         throw new Error(t('Enter a valid nutrition prescription.'));
+      // A plan set per weekday (or none yet) is changed in the nutrition plan itself.
+      if (!client.nutrition || Array.isArray(client.nutrition.days))
+        throw new Error(t('Open this client’s nutrition plan to change targets for each weekday.'));
       const before = Object.fromEntries(
         Object.keys(values).map((k) => [k, client.nutrition[k]]),
       );

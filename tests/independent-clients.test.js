@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { workspaceChanges } from "../src/avalen/ecosystem/changes.js";
-import { fixture } from "./helpers/service.js";
+import { fixture, givePlan } from "./helpers/service.js";
 
 const count = async (f, sql, params = []) => Number((await f.db.get(sql, params)).n);
 const today = new Date().toISOString().slice(0, 10);
@@ -11,6 +11,7 @@ const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a
 async function activeClient(f, email = "maya@test.app") {
   const { code } = await f.call("/api/coach-code", { account: f.coach });
   const client = await f.call("/api/signup/client", { method: "POST", body: { name: "Maya Chen", email, password: "client-password-123", code } });
+  await givePlan(f, client.user.clientId);
   const seen = await f.call("/api/workspace", { account: client });
   const upload = await fetch(`${f.base}/api/media`, {
     method: "POST",

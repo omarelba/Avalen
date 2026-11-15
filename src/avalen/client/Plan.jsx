@@ -12,6 +12,7 @@ import { SmartSchedule } from '../ecosystem/scheduling.jsx';
 import { Button, Calendar, Empty, Heading, Modal, Notice, SectionHead, Stat, Tabs } from '../ui.jsx';
 import { t } from '../i18n.js';
 import { Habits } from './Habits.jsx';
+import { hasProgram } from '../plan-week.js';
 
 export function Plan() {
   const { subtab, setSubtab, client } = useApp();
@@ -98,11 +99,11 @@ function Training() {
       ) : (
         <Empty
           icon={Dumbbell}
-          title={t('A planned rest day')}
-          detail={t('Recovery is part of the programme. Your habits are still here for you.')}
+          title={hasProgram(client) ? t('A planned rest day') : t('Your coach is preparing your plan.')}
+          detail={hasProgram(client) ? t('Recovery is part of the programme. Your habits are still here for you.') : t('Your workouts appear here as soon as your coach sets them.')}
         />
       )}
-      <MotionDetails className="programme-overview"><summary><span>{t('About your programme')}<small>{t(client.program.name)} · {client.program.phase}</small></span><ChevronRight size={18}/></summary>
+      {hasProgram(client) && <MotionDetails className="programme-overview"><summary><span>{t('About your programme')}<small>{t(client.program.name)} · {client.program.phase}</small></span><ChevronRight size={18}/></summary>
       <div className="card program-title">
         <span className="eyebrow">{client.program.phase}</span>
         <h2>{t(client.program.name)}</h2>
@@ -120,7 +121,7 @@ function Training() {
             </Notice>
           )}
       </div>
-      </MotionDetails>
+      </MotionDetails>}
       <SmartSchedule client={client}/>
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)}>

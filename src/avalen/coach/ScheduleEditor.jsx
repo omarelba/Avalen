@@ -10,7 +10,7 @@ export function ScheduleEditor({ client }) {
   const [saving, setSaving] = useState(false), [error, setError] = useState('');
   const saveLock = useRef(false);
   const [date, setDate] = useState(dayKey()),
-    [day, setDay] = useState(client.program.days[0].id),
+    [day, setDay] = useState(client.program.days[0]?.id || 'rest'),
     [saved, setSaved] = useState(false);
   const valid = Boolean(date && !data.sessions.some(s=>s.clientId===client.id && s.date===date) && date >= dayKey() && (day === 'rest' || client.program.days.some(item => item.id === day)));
   return (

@@ -32,10 +32,11 @@ test("a coach who forgot their password gets a code by email, sets a new one and
 
     // A wrong code is refused and the typed new password stays.
     await page.getByLabel("6-digit code").fill(code === "000000" ? "111111" : "000000");
-    await page.getByLabel("New password").fill("brand-new-password-1");
+    await page.getByLabel("New password", { exact: true }).fill("brand-new-password-1");
+    await page.getByLabel("Confirm new password").fill("brand-new-password-1");
     await page.getByRole("button", { name: "Change password", exact: true }).click();
     await expect(page.getByRole("alert")).toContainText("That code is wrong or has expired");
-    await expect(page.getByLabel("New password")).toHaveValue("brand-new-password-1");
+    await expect(page.getByLabel("New password", { exact: true })).toHaveValue("brand-new-password-1");
 
     await page.getByLabel("6-digit code").fill(code);
     await page.getByRole("button", { name: "Change password", exact: true }).click();

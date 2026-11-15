@@ -1,5 +1,8 @@
 // Day-level targets stay with the log when a coach changes a later prescription.
-export const targetValues = plan => Object.fromEntries(['kcal', 'p', 'c', 'f'].map(k => [k, Number(plan[k]) || 0]));
+import { nutritionPlanFor } from './plan-week.js';
+export const targetValues = plan => Object.fromEntries(['kcal', 'p', 'c', 'f'].map(k => [k, Number(plan?.[k]) || 0]));
+// The targets a day is measured against: that weekday's plan, or zeros when the coach hasn't set one.
+export const targetsFor = (client, date) => targetValues(nutritionPlanFor(client, date));
 export function nutritionDay(data, clientId, date) {
   return (data.nutritionDays || []).find(d => d.clientId === clientId && d.date === date);
 }
@@ -7,7 +10,7 @@ export function ensureNutritionDay(data, client, date) {
   data.nutritionDays ??= [];
   let day = nutritionDay(data, client.id, date);
   if (!day) {
-    day = { clientId: client.id, date, target: targetValues(client.nutrition), complete: false };
+    day = { clientId: client.id, date, target: targetsFor(client, date), complete: false };
     data.nutritionDays.push(day);
   }
   return day;

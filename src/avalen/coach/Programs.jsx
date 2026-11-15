@@ -1,35 +1,70 @@
-// The coach's reusable programme templates: create, edit, duplicate and assign.
+// The coach's reusable templates: training programmes (create, edit, duplicate, assign,
+// delete) and weekly nutrition plans (create, edit, duplicate, delete). Clients start from
+// them on their Plan and Nutrition tabs.
 import { useState } from 'react';
 import { FileText, Plus } from 'lucide-react';
 import { useApp } from '../context.js';
 import { useWorkspaceSave } from '../workspace-save.js';
 import { defaultProgram } from '../seed.js';
 import { dayKey, decision, offsetDay, uid } from '../store.js';
+import { WEEKDAYS, applyProgramTemplate } from '../plan-week.js';
 import { libraryWithCatalogue } from '../exercise-catalogue.js';
-import { Button, Empty, Field, Heading, IconButton, Modal, Notice, SectionHead } from '../ui.jsx';
+import { Button, Empty, Field, Heading, IconButton, Modal, Notice, SectionHead, Tabs } from '../ui.jsx';
+import { NutritionTemplateEditor } from './NutritionEditor.jsx';
 import { t } from '../i18n.js';
 import { ProgramEditor } from './ProgramEditor.jsx';
+
+const blankNutritionTemplate = () => ({ id: uid(), name: '', mode: 'Flexible', days: WEEKDAYS.map(() => ({ kcal: '', p: '', c: '', f: '', meals: [] })) });
+
+// The coach's weekly nutrition templates, each with its calories from Monday to Sunday.
+function NutritionTemplates({ templates, onEdit, deleteControl }) {
+  if (!templates.length) return <Empty icon={FileText} title={t('Reusable nutrition plans.')} detail={t('Create a weekly nutrition template once, then load it for any client from their Nutrition tab and adjust it for them.')} action={<Button onClick={() => onEdit(blankNutritionTemplate())}>{t('Create nutrition template')} <Plus size={16} /></Button>} />;
+  return <div className="client-grid">
+    {templates.map((tpl) => {
+      const kcal = tpl.days.map((d) => Number(d.kcal) || 0), low = Math.min(...kcal), high = Math.max(...kcal);
+      return <section className="card" key={tpl.id}>
+        <span className="eyebrow">{tpl.mode === 'Structured' ? t('Meal plan') : t('Macro plan')}</span>
+        <h2>{tpl.name}</h2>
+        <p>{low === high ? t('{kcal} kcal every day', { kcal: low.toLocaleString() }) : t('{low}–{high} kcal across the week', { low: low.toLocaleString(), high: high.toLocaleString() })}</p>
+        <div className="button-row">
+          <Button small secondary onClick={() => onEdit(structuredClone(tpl))}>{t('Edit')}</Button>
+          <button className="text-link" onClick={() => onEdit({ ...structuredClone(tpl), id: uid(), name: `${tpl.name} · copy` })}>{t('Duplicate')}</button>
+          {deleteControl(tpl.id)}
+        </div>
+      </section>;
+    })}
+  </div>;
+}
 
 export function Programs() {
   const { data, update } = useApp();
   const {save, saving, error:saveError} = useWorkspaceSave();
   const [editing, setEditing] = useState(null),
     [assign, setAssign] = useState(null),
-    [clientId, setClientId] = useState(data.clients[0].id);
-  const programs = data.templates;
+    [nutritionEditing, setNutritionEditing] = useState(null),
+    [clientId, setClientId] = useState(data.clients[0]?.id || '');
+  const programs = data.templates || [];
+  const [kind, setKind] = useState('Training'), [confirming, setConfirming] = useState(null);
+  const remove = async (list, id) => { if (await save((d) => { d[list] = (d[list] || []).filter((x) => x.id !== id); })) setConfirming(null); };
+  const deleteControl = (list, id) => confirming === id
+    ? <span className="template-delete-confirm"><span>{t('Delete this template?')}</span><button className="text-link red" disabled={saving} onClick={() => remove(list, id)}>{t('Delete')}</button><button className="text-link" disabled={saving} onClick={() => setConfirming(null)}>{t('Keep')}</button></span>
+    : <button className="text-link" onClick={() => setConfirming(id)}>{t('Delete')}</button>;
   return (
     <>
       <Heading
         title={t('Programs')}
         action={
           <IconButton
-            label={t('Create programme')}
-            onClick={() => setEditing(defaultProgram())}
+            label={kind === 'Nutrition' ? t('Create nutrition template') : t('Create programme')}
+            onClick={() => (kind === 'Nutrition' ? setNutritionEditing(blankNutritionTemplate()) : setEditing(defaultProgram()))}
           >
             <Plus size={21} />
           </IconButton>
         }
       />
+      <Tabs label="Template type" items={['Training', 'Nutrition']} value={kind} onChange={(value) => { setKind(value); setConfirming(null); }} />
+      {kind === 'Nutrition' && <NutritionTemplates templates={data.nutritionTemplates || []} onEdit={setNutritionEditing} deleteControl={(id) => deleteControl('nutritionTemplates', id)} />}
+      {kind === 'Training' && <>
       <div className="client-grid">
         {programs.map((p) => (
           <section className="card" key={p.id}>
@@ -59,6 +94,7 @@ export function Programs() {
               >
                 {t('Duplicate')}
               </button>
+              {deleteControl('templates', p.id)}
             </div>
           </section>
         ))}
@@ -75,6 +111,8 @@ export function Programs() {
           }
         />
       )}
+      </>}
+      {saveError && !assign && <p className="error" role="alert">{saveError}</p>}
       <section className="card">
         <SectionHead
           title={t('Exercise library')}
@@ -84,6 +122,20 @@ export function Programs() {
           {t('The programme builder includes sets, reps, load, rest, tempo, RPE, RIR and coaching notes for every movement.')}
         </p>
       </section>
+      {nutritionEditing && (
+        <NutritionTemplateEditor
+          template={nutritionEditing}
+          onClose={() => setNutritionEditing(null)}
+          onSave={async (tpl) => {
+            const result = await update((d) => {
+              d.nutritionTemplates = (d.nutritionTemplates || []).filter((x) => x.id !== tpl.id);
+              d.nutritionTemplates.push(tpl);
+            });
+            if (result?.error) throw new Error(result.error);
+            setNutritionEditing(null);
+          }}
+        />
+      )}
       {editing && (
         <ProgramEditor
           program={editing}
@@ -113,27 +165,11 @@ export function Programs() {
               ))}
             </select>
           </Field>
-          <Notice>{t('This replaces the client’s current plan and schedules four sessions per week for the full {weeks}-week programme. Completed workout history is kept.', { weeks: assign.weeks })}</Notice>
+          <Notice>{t('This replaces the client’s current plan and follows the programme’s week for the full {weeks} weeks, starting today. Completed workout history is kept.', { weeks: assign.weeks })}</Notice>
           <Button
             onClick={async () => {
               if (!await save((d) => {
-                const c = d.clients.find((c) => c.id === clientId);
-                c.program = structuredClone(assign);
-                c.schedule = c.schedule.filter((s) => s.date < dayKey() || d.sessions.some(x=>x.clientId===c.id && x.date===s.date));
-                let n = 0;
-                for (let i = 0; i < Number(assign.weeks) * 7; i++) {
-                  const date = offsetDay(i);
-                  if (
-                    !d.sessions.some(x=>x.clientId===c.id && x.date===date) && [1, 2, 4, 6].includes(
-                      new Date(date + "T12:00:00").getDay(),
-                    )
-                  )
-                    c.schedule.push({
-                      date,
-                      dayId: c.program.days[n++ % c.program.days.length].id,
-                    });
-                }
-                c.programEnd = offsetDay(assign.weeks * 7 - 1);
+                const c = applyProgramTemplate(d, clientId, assign, dayKey());
                 decision(d, c.id, "Programme assigned", assign.name);
               })) return;
               setAssign(null);

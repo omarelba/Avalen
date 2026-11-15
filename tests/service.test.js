@@ -280,10 +280,11 @@ test("replaying a workspace save after a lost acknowledgement does not duplicate
     const repeated = await f.call("/api/workspace", options);
     assert.equal(repeated.status, 200);
     assert.equal(repeated.revision, first.revision);
-    assert.equal(repeated.data.revisions.length, 2);
+    assert.equal(repeated.data.revisions.length, f.coach.data.revisions.length + 1, "one change recorded, not two");
     assert.equal(
       repeated.data.timeline.filter((e) => e.type === "nutrition").length,
-      1,
+      f.coach.data.timeline.filter((e) => e.type === "nutrition").length + 1,
+      "one timeline entry for the change, not two",
     );
   } finally {
     await f.close();

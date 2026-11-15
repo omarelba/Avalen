@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { workspaceChanges } from "../src/avalen/ecosystem/changes.js";
-import { fixture } from "./helpers/service.js";
+import { fixture, givePlan } from "./helpers/service.js";
 
 const today = new Date().toISOString().slice(0, 10);
 const count = async (f, sql, params = []) => Number((await f.db.get(sql, params)).n);
@@ -16,7 +16,9 @@ async function save(f, account, edit) {
 }
 async function joinedClient(f, email = "maya@test.app", name = "Maya Chen") {
   const { code } = await f.call("/api/coach-code", { account: f.coach });
-  return f.call("/api/signup/client", { method: "POST", body: { name, email, password: "client-password-123", code } });
+  const client = await f.call("/api/signup/client", { method: "POST", body: { name, email, password: "client-password-123", code } });
+  if (client.status === 200) await givePlan(f, client.user.clientId);
+  return client;
 }
 
 test("audit: coach sign-up, sign-in, sign-out and wrong-password handling", async () => {

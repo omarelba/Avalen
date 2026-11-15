@@ -35,6 +35,11 @@ export function programError(program) {
       }
     }
   }
+  if (program.week !== undefined) {
+    if (!Array.isArray(program.week) || program.week.length !== 7 || program.week.some((id) => id !== null && !program.days.some((d) => d.id === id)))
+      return t('Choose a workout or a rest day for each day of the week.');
+    if (!program.week.some(Boolean)) return t('Choose at least one day of the week for a workout.');
+  }
   return '';
 }
 

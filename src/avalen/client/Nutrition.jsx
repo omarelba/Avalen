@@ -4,7 +4,8 @@ import { useRef, useState } from 'react';
 import { Camera, Check, ChevronLeft, ChevronRight, Heart, Plus, ScanBarcode, Search, Utensils } from 'lucide-react';
 import { MotionList, MotionDetails } from '../motion.jsx';
 import { useApp } from '../context.js';
-import { recordFood, ensureNutritionDay, nutritionDay } from '../nutrition-model.js';
+import { recordFood, ensureNutritionDay, nutritionDay, targetsFor } from '../nutrition-model.js';
+import { nutritionPlanFor } from '../plan-week.js';
 import { dayKey, offsetDay, round, saveFile, shortDate, sum, uid } from '../store.js';
 import { CoachMealPlan } from '../nutrition-home.jsx';
 import { PhotoMealLogger } from '../meal-photo.jsx';
@@ -18,10 +19,10 @@ import { portionLabel } from '../portions.js';
 function DailyUpdates({ date, foods }) {
   const { data, client } = useApp();
   const [tab, setTab] = useState('Recommendations');
-  const targets = nutritionDay(data,client.id,date)?.target || client.nutrition;
+  const targets = nutritionDay(data,client.id,date)?.target || targetsFor(client, date);
   const habits = data.habitLogs.find(h => h.clientId === client.id && h.date === date)?.values || {};
   const rows = [
-    {title:'Reach your protein target',value:sum(foods,'p'),target:targets.p,unit:'g',tone:'green'},
+    ...(targets.p > 0 ? [{title:'Reach your protein target',value:sum(foods,'p'),target:targets.p,unit:'g',tone:'green'}] : []),
     ...(client.habits.some(h => h.id === 'water') ? [{title:'Drink more water',value:habits.water || 0,target:client.habits.find(h => h.id === 'water').target,unit:'L',tone:'blue'}] : []),
     ...(client.habits.some(h => h.id === 'steps') ? [{title:'Move a little more',value:habits.steps || 0,target:client.habits.find(h => h.id === 'steps').target,unit:'steps',tone:'amber'}] : []),
   ];
@@ -45,7 +46,9 @@ export function Nutrition() {
     (x) => x.clientId === client.id && x.date === date,
   );
   const dayRecord = nutritionDay(data, client.id, date);
-  const targets = dayRecord?.target || client.nutrition;
+  // That weekday's plan from the coach, or the targets saved with the day once food was logged.
+  const plan = nutritionPlanFor(client, date);
+  const targets = dayRecord?.target?.kcal > 0 ? dayRecord.target : plan;
   return (
     <>
       <div className="date-select">
@@ -67,9 +70,9 @@ export function Nutrition() {
       <section className="card nutrition-card">
         <SectionHead
           title={t('Your daily targets')}
-          action={<span className="pill">{client.nutrition.mode}</span>}
+          action={plan && <span className="pill">{plan.mode}</span>}
         />
-        <div className="rings">
+        {targets ? <><div className="rings">
           <Ring
             motionKey={date}
             value={sum(foods, "kcal")}
@@ -101,10 +104,10 @@ export function Nutrition() {
             tone="macro-fat"
           />
         </div>
-        <div className="nutrition-target-context"><span>{Math.abs(targets.kcal - sum(foods, 'kcal')).toLocaleString()} kcal {sum(foods, 'kcal') <= targets.kcal ? 'remaining' : t('above target')}</span><small>{foods.length} {foods.length === 1 ? 'entry' : 'entries'} {t('logged')}</small></div>
+        <div className="nutrition-target-context"><span>{Math.abs(targets.kcal - sum(foods, 'kcal')).toLocaleString()} kcal {sum(foods, 'kcal') <= targets.kcal ? 'remaining' : t('above target')}</span><small>{foods.length} {foods.length === 1 ? 'entry' : 'entries'} {t('logged')}</small></div></> : <p className="muted">{t('Your coach hasn’t set nutrition targets for this day yet. You can still log what you eat.')}</p>}
       </section>
       <div className="nutrition-quick-actions"><Button onClick={() => setAdd(true)}><Plus size={18}/>{t('Log food')}</Button><Button secondary onClick={() => setAdd('Photo')}><Camera size={18}/>{t('Photo meal')}</Button></div>
-      <MotionDetails className="nutrition-plan-disclosure" open={planOpen} onToggle={event => setPlanOpen(event.currentTarget.open)}><summary><span>{t('Your coach’s meal plan')}<small>{client.nutrition.meals?.length || 0} {client.nutrition.mode === 'Structured' ? 'prescribed' : 'suggested'} {t('meals · quick log')}</small></span><ChevronRight size={18}/></summary><CoachMealPlan onLog={setPlannedMeal}/></MotionDetails>
+      <MotionDetails className="nutrition-plan-disclosure" open={planOpen} onToggle={event => setPlanOpen(event.currentTarget.open)}><summary><span>{t('Your coach’s meal plan')}<small>{plan?.meals?.length || 0} {plan?.mode === 'Structured' ? 'prescribed' : 'suggested'} {t('meals · quick log')}</small></span><ChevronRight size={18}/></summary><CoachMealPlan onLog={setPlannedMeal}/></MotionDetails>
       <SectionHead
         title={t('Food diary')}
         action={

@@ -89,4 +89,7 @@ export default {
   'Change password': 'تغيير كلمة المرور',
   'Send a new code': 'إرسال رمز جديد',
   'Password changed. Sign in with your new password.': 'تم تغيير كلمة المرور. سجّل الدخول بكلمة المرور الجديدة.',
+  'Confirm password': 'تأكيد كلمة المرور',
+  'Confirm new password': 'تأكيد كلمة المرور الجديدة',
+  'The passwords don’t match. Type the same password in both fields.': 'كلمتا المرور غير متطابقتين. اكتب كلمة المرور نفسها في الحقلين.',
 };

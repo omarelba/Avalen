@@ -5,6 +5,7 @@ import { checkinPlanError } from "../src/avalen/checkin-model.js";
 import { policyError } from "../src/avalen/ecosystem/scheduling.js";
 import { equal, foundations } from "../src/avalen/ecosystem/memory.js";
 import { paymentChangeError } from "../src/avalen/payments-model.js";
+import { targetsFor } from "../src/avalen/nutrition-model.js";
 import { AREAS } from "./store/records.js";
 export function fail(status, message) {
   throw Object.assign(new Error(message), { status });
@@ -91,6 +92,7 @@ export function projection(source, user) {
   data.forms = [];
   data.automations = [];
   data.templates = [];
+  data.nutritionTemplates = [];
   data.dismissed = [];
   return data;
 }
@@ -361,16 +363,8 @@ export function mergeEdit(source, next, user) {
             next[key].filter((d) => d.date === row.date).length > 1
           )
             fail(400, "Use one nutrition day per date.");
-          const target =
-            old?.target ||
-            Object.fromEntries(
-              ["kcal", "p", "c", "f"].map((k) => [
-                k,
-                source.clients.find((c) => c.id === user.client_id).nutrition[
-                  k
-                ],
-              ]),
-            );
+          // The coach's targets for that weekday, or zeros when none are set.
+          const target = old?.target || targetsFor(source.clients.find((c) => c.id === user.client_id), row.date);
           if (!equal(target, row.target))
             fail(403, "Your coach sets nutrition targets.");
         }

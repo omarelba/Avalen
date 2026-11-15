@@ -3,7 +3,8 @@ import React, { useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Camera, Check, ImagePlus, ScanLine } from 'lucide-react';
 import { useApp } from './context.js';
 import { saveFile, uid, dayKey, sum } from './store.js';
-import { recordFood, nutritionDay } from './nutrition-model.js';
+import { recordFood, nutritionDay, targetsFor } from './nutrition-model.js';
+import { nutritionPlanFor } from './plan-week.js';
 import { FOODS } from './seed.js';
 import { Button, Field, Media, Modal } from './ui.jsx';
 
@@ -27,7 +28,9 @@ export function PhotoMealLogger({ date = dayKey(), onClose, onBack, initialMeal 
   const [source, setSource] = useState(initialEntry?.source || (initialMeal ? 'coach-plan' : initialFood?.id ? 'recent-entry' : initialFood ? 'food-library' : 'manual'));
   const [base, setBase] = useState(preset), [portion, setPortion] = useState(1);
   const lock = useRef(false), saving = useRef(false), picker = useRef(null), library = useRef(null);
-  const target = nutritionDay(data, client.id, date)?.target || client.nutrition;
+  // That weekday's plan from the coach (its meals and targets); targets are zero when none is set.
+  const plan = nutritionPlanFor(client, date);
+  const target = nutritionDay(data, client.id, date)?.target || targetsFor(client, date);
   const loggedCalories = sum(data.foodLogs.filter(f => f.clientId === client.id && f.date === date && f.id !== initialEntry?.id), 'kcal');
   async function upload(event) {
     const file = event.target.files?.[0];
@@ -39,7 +42,7 @@ export function PhotoMealLogger({ date = dayKey(), onClose, onBack, initialMeal 
   function choose(value) {
     if (!value) { setBase(null); setSource('manual'); setFood(f => ({ ...f, name: '', kcal: '', p: '', c: '', f: '' })); return; }
     const [kind, n] = value.split(':');
-    const m = kind === 'plan' ? client.nutrition.meals[Number(n)] : FOODS[Number(n)];
+    const m = kind === 'plan' ? plan.meals[Number(n)] : FOODS[Number(n)];
     setBase(kind === 'plan' ? { ...m, portion: planPortion(m) || undefined } : m); setPortion(1); setSource(kind === 'plan' ? 'coach-plan' : 'food-library');
     setFood({ ...m, name: kind === 'plan' ? m.description || m.name : m.name, meal: kind === 'plan' ? m.name : mealNow(), portion: (kind === 'plan' ? planPortion(m) : m.portion) || '1 serving', ...Object.fromEntries(nutrients.map(([k]) => [k, m[k] ?? ''])) });
   }
@@ -86,7 +89,7 @@ export function PhotoMealLogger({ date = dayKey(), onClose, onBack, initialMeal 
       <Button disabled={busy || (!photo && requirePhoto)} onClick={() => setStep('review')}>{t('Review meal')} <ArrowRight size={18}/></Button>
     </> : <form onSubmit={log}>
       {photo && <div className="review-photo"><Media fileId={photo.id} alt={t('Meal to review')}/><button type="button" onClick={() => setStep('photo')}><Camera size={15}/>{t('Change photo')}</button></div>}
-      {!preset && <Field label={t('Match your meal')}><select aria-label={t('Match your meal')} defaultValue="" onChange={e => choose(e.target.value)}><option value="">{t('Enter nutrition myself')}</option><optgroup label={t('Your coach’s meals')}>{(client.nutrition.meals || []).map((m, i) => <option value={`plan:${i}`} key={i}>{t(m.name)} · {t(m.description)}</option>)}</optgroup><optgroup label={t('Food library')}>{FOODS.map((f, i) => <option value={`library:${i}`} key={i}>{t(f.name)} · {portionLabel(f.portion)}</option>)}</optgroup></select></Field>}
+      {!preset && <Field label={t('Match your meal')}><select aria-label={t('Match your meal')} defaultValue="" onChange={e => choose(e.target.value)}><option value="">{t('Enter nutrition myself')}</option><optgroup label={t('Your coach’s meals')}>{(plan?.meals || []).map((m, i) => <option value={`plan:${i}`} key={i}>{t(m.name)} · {t(m.description)}</option>)}</optgroup><optgroup label={t('Food library')}>{FOODS.map((f, i) => <option value={`library:${i}`} key={i}>{t(f.name)} · {portionLabel(f.portion)}</option>)}</optgroup></select></Field>}
       {base && <>
         <div className="quick-meal-summary"><span className="eyebrow">{initialEntry ? t('YOUR DIARY') : source === 'coach-plan' ? t('FROM YOUR COACH') : source === 'recent-entry' ? t('RECENT MEAL') : t('FOOD LIBRARY')}</span><h2>{t(food.name)}</h2><p><MotionNumber value={Number(food.kcal || 0)}/> {t('kcal ·')} {food.p === '' ? t('Protein not entered') : t('{p}g protein', { p: food.p })}</p></div>
         <p className="portion-source">{t('Adjust to what you ate')}</p>
@@ -99,7 +102,7 @@ export function PhotoMealLogger({ date = dayKey(), onClose, onBack, initialMeal 
         <p className="fine-print muted">{t('Portion notes describe your meal; use the portion buttons or edit the values to change nutrition.')}</p>
       </MotionDetails>
       {['p', 'c', 'f'].some(k => food[k] === '') && <p className="fine-print muted">{t('Missing macros are not estimated. Add them from the label or ask your coach.')}</p>}
-      <div className="meal-confirm-bar"><div className="meal-goal-impact"><span>{t('After this meal')}</span><b><MotionNumber value={Math.abs(remaining)}/> <small>kcal {remaining >= 0 ? 'remaining' : t('above target')}</small></b></div><Button type="submit" disabled={!valid || busy}>{busy ? t('Saving meal…') : initialEntry ? t('Save meal') : t('Log meal')} <Check size={18}/></Button></div>
+      <div className="meal-confirm-bar">{target.kcal > 0 ? <div className="meal-goal-impact"><span>{t('After this meal')}</span><b><MotionNumber value={Math.abs(remaining)}/> <small>kcal {remaining >= 0 ? 'remaining' : t('above target')}</small></b></div> : <span />}<Button type="submit" disabled={!valid || busy}>{busy ? t('Saving meal…') : initialEntry ? t('Save meal') : t('Log meal')} <Check size={18}/></Button></div>
       {photo && !initialEntry && <button type="button" className="text-link" onClick={() => setStep('photo')}><ArrowLeft size={15}/>{t('Back to photo')}</button>}
     </form>}
     {error && <p className="error" role="alert">{error}</p>}

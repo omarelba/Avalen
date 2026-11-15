@@ -8,6 +8,7 @@ import { useWorkspaceSave } from '../workspace-save.js';
 import { reviewQueue, reviewAction, dismissFlag } from '../coach-review.js';
 import { useWearableSummary, CoachWearableCard } from '../wearables.jsx';
 import { dayKey, decision, metrics, scheduleDay } from '../store.js';
+import { programWeek, scheduleFromWeek } from '../plan-week.js';
 import { Button, Heading, Modal, Stat, Tabs } from '../ui.jsx';
 import { t } from '../i18n.js';
 import { Progress } from '../client.jsx';
@@ -134,12 +135,17 @@ export function ClientDetail({ client, tab, setTab }) {
       {tab === "Documents" && <Documents client={client} />}{" "}
       {edit && (
         <ProgramEditor
-          program={client.program}
-          draftKey={`client.${client.id}`}
+          program={{ ...client.program, week: programWeek(client, dayKey()) }}
+          draftKey={`client-week.${client.id}`}
           onClose={() => setEdit(false)}
           onSave={async(program, reason) => {
             const result=await update((d) => {
-              d.clients.find((c) => c.id === client.id).program = program;
+              const c = d.clients.find((c) => c.id === client.id);
+              // The week repeats from today to the end of the programme; past and completed days stay.
+              const { schedule, start, programEnd } = scheduleFromWeek(c, program, d.sessions, dayKey());
+              c.program = { ...program, start };
+              c.schedule = schedule;
+              c.programEnd = programEnd;
               decision(
                 d,
                 client.id,

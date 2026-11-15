@@ -7,9 +7,9 @@ import { reviewQueue } from '../coach-review.js';
 import { useApp } from '../context.js';
 import { useWorkspaceSave } from '../workspace-save.js';
 import { connection } from '../ecosystem/connection.js';
-import { attentionFor, dayKey, metrics, offsetDay } from '../store.js';
+import { attentionFor, dayKey, decision, metrics, offsetDay } from '../store.js';
 import { newClient } from '../seed.js';
-import { blankPlan } from '../plan-week.js';
+import { applyProgramTemplate, blankPlan, nutritionFromTemplate } from '../plan-week.js';
 import { useWearableSummary, WearableLine } from '../wearables.jsx';
 import { Avatar, Button, Empty, Field, Heading, IconButton, Modal, Notice, Tabs } from '../ui.jsx';
 import { t } from '../i18n.js';
@@ -135,7 +135,15 @@ export function Clients() {
               const fields = new FormData(e.currentTarget),
                 c = blankPlan(newClient(fields.get("name"), fields.get("email")), dayKey());
               c.created = dayKey();
-              if (!await save((d) => d.clients.push(c))) return;
+              const trainingId = fields.get("trainingTemplate"), nutritionId = fields.get("nutritionTemplate");
+              if (!await save((d) => {
+                d.clients.push(c);
+                // Optional templates chosen while adding the client: their own copies, starting today (DR-07).
+                const training = (d.templates || []).find((x) => x.id === trainingId);
+                if (training) { applyProgramTemplate(d, c.id, training, dayKey()); decision(d, c.id, "Programme assigned", training.name); }
+                const nutrition = (d.nutritionTemplates || []).find((x) => x.id === nutritionId);
+                if (nutrition) { d.clients.find((x) => x.id === c.id).nutrition = nutritionFromTemplate(nutrition); decision(d, c.id, "Nutrition adjusted", t('Weekly nutrition plan set from the template “{name}”.', { name: nutrition.name })); }
+              })) return;
               setAdding(false);
               selectClient(c.id, "Plan");
             }}
@@ -143,6 +151,8 @@ export function Clients() {
             <fieldset className="save-fields" disabled={saving}>
             <Field label={t('Full name')} name="name" required maxLength={80} />
             <Field label={t('Email')} name="email" type="email" required />
+            {data.templates?.length > 0 && <Field label={t('Training programme')}><select name="trainingTemplate" defaultValue=""><option value="">{t('Start empty')}</option>{data.templates.map((p) => <option key={p.id} value={p.id}>{t(p.name)} · {t('{weeks} weeks', { weeks: p.weeks })}</option>)}</select></Field>}
+            {data.nutritionTemplates?.length > 0 && <Field label={t('Nutrition plan')}><select name="nutritionTemplate" defaultValue=""><option value="">{t('Start empty')}</option>{data.nutritionTemplates.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}</select></Field>}
             <Notice>
               {connection() ? t('This creates a client in your private workspace. Then use Account → Invite a client to create their sign-in invitation.') : t('This creates a client in this device’s workspace. Connect a private workspace to invite clients securely.')}
             </Notice>

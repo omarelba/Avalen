@@ -108,7 +108,7 @@ test('coach publishing retains the post after a failed save and publishes once o
 });
 
 test('coach schedule reports success only after saving the adjustment', async ({page}) => {
- await demo(page);await page.getByLabel('Workspace role').selectOption('coach');await nav(page,'Clients').click();await page.locator('.client-card').first().click();await page.getByRole('tab',{name:'Plan',exact:true}).click();await page.getByRole('tab',{name:'Schedule',exact:true}).click();const before=(await state(page)).clients[0].schedule;
+ await demo(page);await page.getByLabel('Workspace role').selectOption('coach');await nav(page,'Clients').click();await page.locator('.client-card').first().click();await page.getByRole('tab',{name:'Plan',exact:true}).click();await page.getByRole('region',{name:'Schedule',exact:true}).scrollIntoViewIfNeeded();const before=(await state(page)).clients[0].schedule;
  await failSaves(page);await page.getByRole('button',{name:'Save schedule',exact:true}).click();await expect(page.getByText('Schedule updated.',{exact:true})).toHaveCount(0);expect((await state(page)).clients[0].schedule).toEqual(before);
  await page.evaluate(()=>window.restoreStorage());await page.getByRole('button',{name:'Save schedule',exact:true}).click();await expect(page.getByText('Schedule updated.',{exact:true})).toBeVisible();
 });

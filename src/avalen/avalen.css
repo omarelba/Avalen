@@ -3,7 +3,7 @@
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
-  font-size: 14px;
+  font-size: 15px;
   -webkit-tap-highlight-color: transparent;
 }
 .brand-logo {
@@ -89,7 +89,7 @@ h1 {
   line-height: 1.18;
 }
 h2 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 550;
   letter-spacing: -0.45px;
   line-height: 1.35;
@@ -103,7 +103,7 @@ p {
   line-height: 1.65;
 }
 small {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 b,
@@ -187,14 +187,14 @@ button:active:not(:disabled) {
   color: var(--muted);
 }
 .fine-print {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 .preserve-lines {
   white-space: pre-line;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 1.25px;
   color: var(--muted);
@@ -208,7 +208,7 @@ button:active:not(:disabled) {
   background: #ffffff06;
   border: 1px solid var(--line);
   border-radius: 20px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -397,7 +397,7 @@ button:active:not(:disabled) {
   padding: 0 10px 42px;
 }
 .desktop-sidebar > .eyebrow {
-  font-size: 9px;
+  font-size: 11px;
   padding: 0 12px;
   color: var(--muted);
   letter-spacing: 1.5px;
@@ -428,7 +428,7 @@ button:active:not(:disabled) {
   margin-inline-start: auto;
   background: #7fc9a1;
   color: var(--on-primary);
-  font-size: 9px;
+  font-size: 12px;
   border-radius: 50%;
   padding: 2px 5px;
   font-style: normal;
@@ -438,7 +438,7 @@ button:active:not(:disabled) {
   padding: 28px 10px 0;
 }
 .workspace-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -456,7 +456,7 @@ button:active:not(:disabled) {
   margin: 20px 0;
 }
 .sidebar-bottom small {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .app-content {
@@ -534,7 +534,7 @@ button:active:not(:disabled) {
   max-width: 1030px;
   margin: auto;
   padding: 7px 0 40px;
-  animation: page-in 0.22s ease both;
+  animation: page-in var(--motion-state) ease both;
   min-height: 75vh;
 }
 .page-heading {
@@ -553,11 +553,11 @@ button:active:not(:disabled) {
 }
 .page-heading > .eyebrow {
   margin-bottom: 8px;
-  font-size: 10px;
+  font-size: 11px;
 }
 .page-footer {
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   padding: 45px 0 0;
   letter-spacing: 0.15px;
@@ -602,7 +602,7 @@ button:active:not(:disabled) {
   letter-spacing: -0.2px;
 }
 .section-head .muted {
-  font-size: 11px;
+  font-size: 12px;
 }
 .stat {
   display: flex;
@@ -621,7 +621,7 @@ button:active:not(:disabled) {
 }
 .stat > small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 .two-stats,
 .three-stats {
@@ -642,30 +642,6 @@ button:active:not(:disabled) {
 .two-stats small {
   color: var(--muted);
   margin-top: 5px;
-}
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #ffffff10;
-  gap: 24px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin-bottom: 25px;
-  white-space: nowrap;
-}
-.tabs::-webkit-scrollbar {
-  display: none;
-}
-.tabs button {
-  min-height: 46px;
-  border-bottom: 2px solid transparent;
-  color: var(--muted);
-  font-size: 12px;
-  padding: 0 2px;
-  flex-shrink: 0;
-}
-.tabs button.active {
-  color: var(--text);
-  border-bottom-color: #dbe7df;
 }
 .simple-row {
   display: flex;
@@ -691,7 +667,7 @@ button:active:not(:disabled) {
   display: block;
   color: var(--muted);
   margin-top: 5px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .simple-row > b {
   text-align: end;
@@ -703,7 +679,7 @@ button:active:not(:disabled) {
   overflow-wrap: anywhere;
 }
 .simple-row > span + span:last-child {
-  font-size: 10px;
+  font-size: 12px;
   margin-inline-start: auto;
 }
 .list {
@@ -762,7 +738,7 @@ button:active:not(:disabled) {
   scroll-snap-align: center;
 }
 .calendar small {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .calendar b {
@@ -831,7 +807,7 @@ button:active:not(:disabled) {
 }
 .ring-item {
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--tone);
 }
 .ring {
@@ -858,11 +834,11 @@ button:active:not(:disabled) {
   align-items: center;
   justify-content: center;
   color: var(--text);
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: -0.3px;
 }
 .ring small {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   letter-spacing: 0;
 }
@@ -870,7 +846,7 @@ button:active:not(:disabled) {
   display: block;
   margin-top: 6px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 .nutrition-card .section-head {
   margin-bottom: 10px;
@@ -894,12 +870,12 @@ button:active:not(:disabled) {
   letter-spacing: -0.6px;
 }
 .habit-tile > span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin: 3px 0 12px;
 }
 .habit-tile small {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 10px;
 }
@@ -932,7 +908,7 @@ button:active:not(:disabled) {
   justify-content: space-between;
 }
 .checkin-tile > b {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   margin-top: 19px;
   font-weight: 500;
@@ -942,7 +918,7 @@ button:active:not(:disabled) {
   vertical-align: middle;
 }
 .checkin-tile small {
-  font-size: 9px;
+  font-size: 12px;
 }
 .quote {
   min-height: 104px;
@@ -1007,12 +983,12 @@ button:active:not(:disabled) {
 }
 .exercise-row small {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 6px;
 }
 .exercise-number {
-  font-size: 11px;
+  font-size: 12px;
   background: var(--surface-soft);
   width: 32px;
   height: 36px;
@@ -1049,7 +1025,7 @@ button:active:not(:disabled) {
   letter-spacing: -1px;
 }
 .habit-card strong small {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--muted);
   letter-spacing: 0;
@@ -1159,20 +1135,20 @@ button:active:not(:disabled) {
   padding-top: 7px;
 }
 .weight-summary b {
-  font-size: 18px;
+  font-size: 17px;
 }
 .weight-summary span {
-  font-size: 11px;
+  font-size: 12px;
 }
 .weight-summary small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 .chart-readout {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin-bottom: 3px;
 }
@@ -1189,7 +1165,7 @@ button:active:not(:disabled) {
 }
 .chart text {
   fill: #7e9385;
-  font-size: 9px;
+  font-size: 12px;
   font-family: inherit;
 }
 .chart .gridline {
@@ -1228,7 +1204,7 @@ button:active:not(:disabled) {
   max-height: 200px;
 }
 .strength-list .card > p {
-  font-size: 10px;
+  font-size: 12px;
 }
 .photo-grid {
   display: flex;
@@ -1250,7 +1226,7 @@ button:active:not(:disabled) {
 .photo-grid small {
   display: block;
   text-align: center;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 8px;
 }
@@ -1269,7 +1245,7 @@ button:active:not(:disabled) {
   align-self: flex-start;
 }
 .photo-add span {
-  font-size: 10px;
+  font-size: 12px;
 }
 .photo-add input,
 .upload-zone input,
@@ -1299,7 +1275,7 @@ button:active:not(:disabled) {
   font-size: 12px;
 }
 .upload-zone span {
-  font-size: 10px;
+  font-size: 12px;
 }
 .upload-inline {
   display: inline-flex;
@@ -1341,7 +1317,7 @@ button:active:not(:disabled) {
   background: #0008;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .photo-compare > span {
   inset-inline-start: 12px;
@@ -1391,7 +1367,7 @@ button:active:not(:disabled) {
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .heatmap-key i {
@@ -1457,7 +1433,7 @@ button:active:not(:disabled) {
   justify-content: space-between;
   gap: 7px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 .workout-progress {
   display: flex;
@@ -1471,7 +1447,7 @@ button:active:not(:disabled) {
   color: var(--muted);
   height: 34px;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .workout-progress .active {
   background: #abcbb51a;
@@ -1497,7 +1473,7 @@ button:active:not(:disabled) {
   color: var(--muted);
 }
 .set-table > div:first-child {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   min-height: 32px;
 }
@@ -1539,16 +1515,16 @@ button:active:not(:disabled) {
   color: var(--green);
 }
 .rest-timer b {
-  font-size: 18px;
+  font-size: 17px;
   font-variant-numeric: tabular-nums;
 }
 .rest-timer span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   flex: 1;
 }
 .rest-timer button {
-  font-size: 10px;
+  font-size: 12px;
   text-decoration: underline;
 }
 .finish-confirm {
@@ -1556,7 +1532,7 @@ button:active:not(:disabled) {
   margin-top: 20px;
 }
 .finish-confirm h3 {
-  font-size: 18px;
+  font-size: 17px;
 }
 .share-poster {
   aspect-ratio: 9/16;
@@ -1586,7 +1562,7 @@ button:active:not(:disabled) {
   width: 20px;
 }
 .share-result > .eyebrow {
-  font-size: 8px;
+  font-size: 11px;
   color: var(--text);
   letter-spacing: 1.7px;
 }
@@ -1617,13 +1593,13 @@ button:active:not(:disabled) {
 }
 .share-result small {
   display: block;
-  font-size: 7px;
+  font-size: 12px;
   letter-spacing: 0.8px;
   color: var(--muted);
   margin-top: 7px;
 }
 .share-result p {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .background-picker {
@@ -1665,13 +1641,13 @@ button:active:not(:disabled) {
 }
 .coach-profile p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .coach-profile .eyebrow {
-  font-size: 8px;
+  font-size: 11px;
 }
 .coach-profile .small {
-  font-size: 10px;
+  font-size: 12px;
   padding: 9px 11px;
   gap: 5px;
 }
@@ -1689,7 +1665,7 @@ button:active:not(:disabled) {
   font-size: 12px;
 }
 .feed-author small {
-  font-size: 10px;
+  font-size: 12px;
   display: block;
   color: var(--muted);
   margin-top: 4px;
@@ -1726,7 +1702,7 @@ button:active:not(:disabled) {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   min-height: 30px;
 }
 .feed-actions button[aria-pressed="true"] {
@@ -1761,7 +1737,7 @@ button:active:not(:disabled) {
   color: var(--text);
 }
 .message small {
-  font-size: 8px;
+  font-size: 12px;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -1773,7 +1749,7 @@ button:active:not(:disabled) {
   margin: 0 0 10px;
   border-inline-start: 2px solid #8bc5a4;
   padding: 7px 10px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   background: #b8deb409;
   border-radius: 0 5px 5px 0;
@@ -1810,7 +1786,7 @@ button:active:not(:disabled) {
 .messages > .fine-print {
   display: block;
   margin-top: 12px;
-  font-size: 9px;
+  font-size: 12px;
 }
 .checkin-summary {
   display: flex;
@@ -1826,7 +1802,7 @@ button:active:not(:disabled) {
 .checkin-summary small {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .score-field {
@@ -1840,7 +1816,7 @@ button:active:not(:disabled) {
   margin-bottom: 12px;
 }
 .score-field label small {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
 }
 .score-field > div {
@@ -1871,7 +1847,7 @@ button:active:not(:disabled) {
   border-radius: 8px;
 }
 .score-grid span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   display: block;
 }
@@ -1881,11 +1857,11 @@ button:active:not(:disabled) {
   margin-top: 6px;
 }
 .score-grid b small {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 .score-grid > div > small {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   display: block;
   margin-top: 5px;
@@ -1942,11 +1918,11 @@ button:active:not(:disabled) {
 }
 .attention-row small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 6px;
 }
 .attention-row > .muted {
-  font-size: 10px;
+  font-size: 12px;
 }
 .dashboard-stats {
   margin-top: 0;
@@ -1964,14 +1940,14 @@ button:active:not(:disabled) {
 }
 .dashboard-stats .stat small {
   order: -1;
-  font-size: 8px;
+  font-size: 12px;
   margin-top: 4px;
 }
 .dashboard-stats .stat > strong {
   font-size: 31px;
 }
 .dashboard-stats .stat > span {
-  font-size: 10px;
+  font-size: 12px;
 }
 .client-grid {
   display: grid;
@@ -1994,10 +1970,10 @@ button:active:not(:disabled) {
   min-width: 0;
 }
 .client-card h3 {
-  font-size: 14px;
+  font-size: 15px;
 }
 .client-card small {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   display: block;
   margin-top: 4px;
@@ -2009,17 +1985,17 @@ button:active:not(:disabled) {
   margin-top: 14px;
   border-block: 1px solid var(--line);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 .client-mini b {
   display: block;
-  font-size: 18px;
+  font-size: 17px;
   color: var(--text);
   font-weight: 450;
   margin-bottom: 7px;
 }
 .client-card > p {
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 13px;
 }
 .client-card > p.red {
@@ -2045,7 +2021,7 @@ button:active:not(:disabled) {
 }
 .timeline-entry small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 .timeline-entry h3 {
   margin: 10px 0;
@@ -2075,7 +2051,7 @@ button:active:not(:disabled) {
 .exercise-editor summary small {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .exercise-editor summary b {
@@ -2090,7 +2066,7 @@ button:active:not(:disabled) {
 }
 .exercise-library-count { margin: 8px 0 6px; font-size: 11px; }
 .exercise-library button > span { display: grid; gap: 2px; min-width: 0; }
-.exercise-library button small { font-size: 10px; opacity: .65; }
+.exercise-library button small { font-size: 12px; opacity: .65; }
 .exercise-library button {
   display: flex;
   align-items: center;
@@ -2100,7 +2076,7 @@ button:active:not(:disabled) {
   border-radius: 8px;
   min-height: 43px;
   padding: 10px 12px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 .brand-preview {
@@ -2144,7 +2120,7 @@ button:active:not(:disabled) {
   gap: 10px;
 }
 .welcome-top > .eyebrow {
-  font-size: 8px;
+  font-size: 11px;
   color: var(--muted);
   letter-spacing: 1.5px;
 }
@@ -2152,7 +2128,7 @@ button:active:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text);
   min-height: 40px;
 }
@@ -2174,7 +2150,7 @@ button:active:not(:disabled) {
   line-height: 1.1;
 }
 .welcome-brand p {
-  font-size: 19px;
+  font-size: 20px;
   color: var(--muted);
   line-height: 1.5;
   margin-top: 14px;
@@ -2211,7 +2187,7 @@ button:active:not(:disabled) {
   font-weight: 500;
 }
 .welcome-benefits p {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 5px;
 }
@@ -2223,7 +2199,7 @@ button:active:not(:disabled) {
 .welcome-footnote {
   text-align: center;
   margin: 18px 0 5px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .error-screen {
@@ -2245,7 +2221,7 @@ button:active:not(:disabled) {
   justify-content: center;
   gap: 5px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   min-height: 80px;
 }
 @keyframes page-in {
@@ -2265,7 +2241,7 @@ button:active:not(:disabled) {
   margin: 20px 0;
 }
 .changes-grid span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .changes-grid b {
@@ -2295,9 +2271,6 @@ button:active:not(:disabled) {
 .habit-editor .form-grid .field {
   margin-top: 12px;
 }
-.tabs button {
-  min-height: 44px;
-}
 @media (min-width: 1350px) {
   .app-content {
     padding: 0 65px;
@@ -2318,7 +2291,7 @@ button:active:not(:disabled) {
     font-size: 17px;
   }
   .ring small {
-    font-size: 10px;
+    font-size: 12px;
   }
   .daily-tiles .habit-tile {
     min-height: 182px;
@@ -2388,7 +2361,7 @@ button:active:not(:disabled) {
 }
 @media (max-width: 760px) {
   :root {
-    font-size: 14px;
+    font-size: 15px;
   }
   .desktop-sidebar {
     display: none;
@@ -2418,7 +2391,7 @@ button:active:not(:disabled) {
   .avatar {
     height: 33px;
     width: 33px;
-    font-size: 10px;
+    font-size: 11px;
   }
   .page {
     padding: 6px 0 110px;
@@ -2472,7 +2445,7 @@ button:active:not(:disabled) {
     filter: drop-shadow(0 0 8px #e0f6e124);
   }
   .bottom-nav span {
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 400;
   }
   .card {
@@ -2484,7 +2457,7 @@ button:active:not(:disabled) {
     margin: 23px 0 13px;
   }
   .section-head h2 {
-    font-size: 14px;
+    font-size: 15px;
   }
   .today-layout {
     display: block;
@@ -2503,7 +2476,7 @@ button:active:not(:disabled) {
     margin-bottom: 10px;
   }
   .workout-hero .eyebrow {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.6px;
   }
   .workout-hero h2 {
@@ -2512,14 +2485,14 @@ button:active:not(:disabled) {
     letter-spacing: -0.65px;
   }
   .workout-hero p {
-    font-size: 10px;
+    font-size: 12px;
     margin: 7px 0 14px;
   }
   .workout-hero .primary {
     min-height: 38px;
     border-radius: 9px;
     padding: 9px 15px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .nutrition-card {
     padding: 14px 13px 15px;
@@ -2531,7 +2504,7 @@ button:active:not(:disabled) {
     font-size: 13px;
   }
   .nutrition-card .text-link {
-    font-size: 9px;
+    font-size: 12px;
     min-height: 24px;
   }
   .rings {
@@ -2542,10 +2515,10 @@ button:active:not(:disabled) {
     font-size: 13px;
   }
   .ring small {
-    font-size: 8px;
+    font-size: 12px;
   }
   .ring-item > span {
-    font-size: 9px;
+    font-size: 12px;
   }
   .calendar {
     padding: 1px 0 12px;
@@ -2560,10 +2533,10 @@ button:active:not(:disabled) {
     max-width: none;
   }
   .calendar b {
-    font-size: 14px;
+    font-size: 15px;
   }
   .calendar small {
-    font-size: 9px;
+    font-size: 12px;
   }
   .daily-tiles {
     gap: 8px;
@@ -2574,14 +2547,14 @@ button:active:not(:disabled) {
     margin-bottom: 12px;
   }
   .habit-tile > strong {
-    font-size: 19px;
+    font-size: 20px;
   }
   .habit-tile > span {
-    font-size: 10px;
+    font-size: 12px;
     margin-bottom: 8px;
   }
   .habit-tile small {
-    font-size: 8px;
+    font-size: 12px;
     white-space: normal;
   }
   .habit-tile .mini-bars {
@@ -2589,7 +2562,7 @@ button:active:not(:disabled) {
     gap: 3px;
   }
   .checkin-tile > b {
-    font-size: 10px;
+    font-size: 12px;
     margin-top: 15px;
   }
   .checkin-tile svg.blue {
@@ -2605,7 +2578,7 @@ button:active:not(:disabled) {
     font-size: 45px;
   }
   .quote p {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.7;
   }
   .compact-task {
@@ -2613,15 +2586,7 @@ button:active:not(:disabled) {
   }
   .page-footer {
     padding-top: 30px;
-    font-size: 9px;
-  }
-  .tabs {
-    gap: 23px;
-    margin-bottom: 20px;
-  }
-  .tabs button {
-    font-size: 11px;
-    min-height: 42px;
+    font-size: 12px;
   }
   .program-title {
     padding: 22px 18px;
@@ -2637,7 +2602,7 @@ button:active:not(:disabled) {
     font-size: 12px;
   }
   .exercise-row small {
-    font-size: 10px;
+    font-size: 12px;
   }
   .habit-grid {
     gap: 12px;
@@ -2650,7 +2615,7 @@ button:active:not(:disabled) {
     font-size: 23px;
   }
   .habit-card strong small {
-    font-size: 9px;
+    font-size: 12px;
     display: block;
     margin-top: 6px;
     min-height: 15px;
@@ -2676,19 +2641,19 @@ button:active:not(:disabled) {
     padding: 16px 12px;
   }
   .stat > span {
-    font-size: 11px;
+    font-size: 12px;
   }
   .stat > strong {
     font-size: 23px;
   }
   .stat > small {
-    font-size: 9px;
+    font-size: 12px;
   }
   .three-stats .stat > strong {
     font-size: 20px;
   }
   .three-stats .stat > span {
-    font-size: 9px;
+    font-size: 12px;
   }
   .weight-summary strong {
     font-size: 25px;
@@ -2697,13 +2662,13 @@ button:active:not(:disabled) {
     font-size: 16px;
   }
   .weight-summary span {
-    font-size: 9px;
+    font-size: 12px;
   }
   .chart-readout {
-    font-size: 9px;
+    font-size: 12px;
   }
   .chart-readout b {
-    font-size: 11px;
+    font-size: 12px;
   }
   .chart svg {
     max-height: 240px;
@@ -2727,7 +2692,7 @@ button:active:not(:disabled) {
     gap: 10px;
   }
   .heatmap-key span {
-    font-size: 8px;
+    font-size: 12px;
   }
   .coach-profile {
     gap: 11px;
@@ -2743,7 +2708,7 @@ button:active:not(:disabled) {
   .coach-profile .small {
     padding: 8px;
     min-height: 35px;
-    font-size: 9px;
+    font-size: 12px;
   }
   .coach-profile .small svg {
     display: none;
@@ -2752,7 +2717,7 @@ button:active:not(:disabled) {
     font-size: 17px;
   }
   .program-title .two-stats small {
-    font-size: 9px;
+    font-size: 12px;
   }
   .feed-image {
     height: 190px;
@@ -2768,7 +2733,7 @@ button:active:not(:disabled) {
     font-size: 27px;
   }
   .dashboard-stats .stat > span {
-    font-size: 9px;
+    font-size: 12px;
   }
   .attention-card {
     padding: 13px 17px;
@@ -2777,7 +2742,7 @@ button:active:not(:disabled) {
     margin-bottom: 12px;
   }
   .attention-card .section-head h2 {
-    font-size: 14px;
+    font-size: 15px;
     gap: 10px;
   }
   .attention-count {
@@ -2788,10 +2753,10 @@ button:active:not(:disabled) {
     gap: 11px;
   }
   .attention-row b {
-    font-size: 11px;
+    font-size: 12px;
   }
   .attention-row small {
-    font-size: 10px;
+    font-size: 12px;
   }
   .dashboard-grid .quote {
     margin-bottom: 12px;
@@ -2803,7 +2768,7 @@ button:active:not(:disabled) {
     padding: 19px;
   }
   .client-card h3 {
-    font-size: 14px;
+    font-size: 15px;
   }
   .client-card .avatar {
     height: 40px;
@@ -2813,7 +2778,7 @@ button:active:not(:disabled) {
     padding: 17px 0;
   }
   .client-card > p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .flag-detail > p {
     padding-inline-start: 0;
@@ -2823,22 +2788,22 @@ button:active:not(:disabled) {
     padding: 16px 0;
   }
   .simple-row b {
-    font-size: 11px;
+    font-size: 12px;
   }
   .simple-row small {
-    font-size: 9px;
+    font-size: 12px;
   }
   .simple-row > svg {
     height: 17px;
     width: 17px;
   }
   .simple-row > b {
-    font-size: 11px;
+    font-size: 12px;
   }
   .simple-row .avatar {
     height: 31px;
     width: 31px;
-    font-size: 9px;
+    font-size: 11px;
   }
   .modal {
     width: calc(100% - 20px);
@@ -2858,7 +2823,7 @@ button:active:not(:disabled) {
     font-size: 12px;
   }
   .modal .field > span {
-    font-size: 11px;
+    font-size: 12px;
   }
   .modal input,
   .modal select,
@@ -2893,11 +2858,11 @@ button:active:not(:disabled) {
     max-width: 480px;
   }
   .welcome-top > .eyebrow {
-    font-size: 7px;
+    font-size: 11px;
     letter-spacing: 1px;
   }
   .welcome-top button {
-    font-size: 9px;
+    font-size: 12px;
   }
   .welcome-brand {
     padding: 70px 0 45px;
@@ -2911,7 +2876,7 @@ button:active:not(:disabled) {
     margin-top: 45px;
   }
   .welcome-brand p {
-    font-size: 18px;
+    font-size: 17px;
   }
   .welcome-benefits {
     gap: 20px;
@@ -2925,10 +2890,10 @@ button:active:not(:disabled) {
     font-size: 12px;
   }
   .welcome-benefits p {
-    font-size: 10px;
+    font-size: 12px;
   }
   .welcome-footnote {
-    font-size: 9px;
+    font-size: 12px;
     margin-top: 17px;
   }
   .welcome .primary {
@@ -2949,10 +2914,10 @@ button:active:not(:disabled) {
     gap: 18px;
   }
   .ring > span {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ring small {
-    font-size: 7px;
+    font-size: 12px;
   }
   .rings {
     gap: 6px;
@@ -2964,7 +2929,7 @@ button:active:not(:disabled) {
     font-size: 17px;
   }
   .checkin-tile > b {
-    font-size: 9px;
+    font-size: 12px;
   }
   .attention-card .section-head h2 {
     font-size: 12px;
@@ -2972,14 +2937,11 @@ button:active:not(:disabled) {
   .attention-count {
     font-size: 36px;
   }
-  .tabs {
-    gap: 18px;
-  }
   .three-stats .stat {
     padding: 12px 9px;
   }
   .three-stats .stat > strong {
-    font-size: 18px;
+    font-size: 17px;
   }
   .modal-body {
     padding: 15px;
@@ -2998,13 +2960,13 @@ button:active:not(:disabled) {
     font-size: 29px;
   }
   .share-result b {
-    font-size: 18px;
+    font-size: 17px;
   }
   .share-result small {
-    font-size: 6px;
+    font-size: 12px;
   }
   .coach-profile .small {
-    font-size: 8px;
+    font-size: 12px;
   }
   .coach-profile h2 {
     font-size: 15px;

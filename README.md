@@ -53,7 +53,7 @@ The current interface uses Newsreader display typography, Space Grotesk body tex
 
 ## Previous ice reference — 14 October 2026
 
-The latest requested reference uses pale ice blue, monochrome fitness imagery, rounded date capsules and white pill controls. The active stylesheet is `src/avalen/ice-design.css`. Existing workspaces adopt light once while preserving records, and subsequent theme choices persist. See [ICE_REFERENCE_UPDATE.md](ICE_REFERENCE_UPDATE.md) for the design, generated studio asset and validation notes.
+The latest requested reference uses pale ice blue, monochrome fitness imagery, rounded date capsules and white pill controls. Its stylesheet, `src/avalen/ice-design.css`, was no longer loaded and was removed in November 2026; it remains in git history. Existing workspaces adopt light once while preserving records, and subsequent theme choices persist. See [ICE_REFERENCE_UPDATE.md](ICE_REFERENCE_UPDATE.md) for the design, generated studio asset and validation notes.
 
 
 ## Glass and typography refinement
@@ -63,7 +63,7 @@ The icy reference now uses Manrope text with Space Grotesk headings, translucent
 
 ## Previous smoked-glass direction
 
-The latest supplied references are implemented in `src/avalen/atmosphere.css`: an atmospheric blurred photographic canvas, large lightweight white type, simpler session sheets and brighter glass control edges. The previous ice skin is no longer loaded. See [SMOKED_GLASS_UPDATE.md](SMOKED_GLASS_UPDATE.md) for layout changes, record preservation and review captures.
+These references were implemented in `src/avalen/atmosphere.css` (no longer loaded; removed in November 2026, still in git history): an atmospheric blurred photographic canvas, large lightweight white type, simpler session sheets and brighter glass control edges. The previous ice skin is no longer loaded. See [SMOKED_GLASS_UPDATE.md](SMOKED_GLASS_UPDATE.md) for layout changes, record preservation and review captures.
 
 
 ## Current editorial design — 16 October 2026

@@ -1,7 +1,7 @@
 // A client's plan tab: their programme, schedule and daily habits.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronRight } from 'lucide-react';
-import { MotionDetails } from '../motion.jsx';
+import { MotionDetails, useMotionReduced } from '../motion.jsx';
 import { useApp } from '../context.js';
 import { dayKey, decision, shortDate } from '../store.js';
 import { WEEKDAYS, applyProgramTemplate, hasProgram, programTemplateFrom, programWeek } from '../plan-week.js';
@@ -12,6 +12,18 @@ import { ProgressionSuggestions, HabitEditor } from '../insights.jsx';
 import { SmartSchedule } from '../ecosystem/scheduling.jsx';
 import { ScheduleEditor } from './ScheduleEditor.jsx';
 import { TravelPlan } from './TravelPlan.jsx';
+
+// Phones show the plan as one page (DR-09); wider screens keep the Programme, Schedule and Habits tabs.
+const PHONE = '(max-width: 760px)';
+function usePhone() {
+  const [phone, setPhone] = useState(() => typeof matchMedia === 'function' && matchMedia(PHONE).matches);
+  useEffect(() => {
+    const query = matchMedia(PHONE), change = () => setPhone(query.matches);
+    query.addEventListener?.('change', change);
+    return () => query.removeEventListener?.('change', change);
+  }, []);
+  return phone;
+}
 
 // Start a client from one of the coach's programme templates, or save the client's
 // programme as a new template. Success shows only after the save is confirmed.
@@ -68,19 +80,34 @@ export function ClientPlan({client, onEdit}) {
   const templateNote = note.clientId === client.id ? note.text : '';
   const setTemplateNote = (text) => setNote({ clientId: client.id, text });
   const tab = ['Programme', 'Schedule', 'Habits'].includes(subtab) ? subtab : initialTab;
-  return <div className="coach-plan-workspace">
-    <Tabs label={t('Plan tools')} items={['Programme', ['Schedule', `Schedule${pending ? ` · ${pending} to review` : ''}`], 'Habits']} value={tab} onChange={setSubtab}/>
-    {tab === 'Programme' && !hasProgram(client) && <section className="card"><h2>{t('No programme yet')}</h2><p className="muted">{t('Build {name}’s workouts and choose which days of the week they train. The client sees their plan as soon as you save it.', { name: client.name.split(' ')[0] })}</p><Button onClick={onEdit}>{t('Create programme')} <ArrowRight size={17}/></Button><ProgramTemplates client={client} done={templateNote} setDone={setTemplateNote}/></section>}
-    {tab === 'Programme' && hasProgram(client) && <>
+  const phone = usePhone(), reduced = useMotionReduced();
+  const sections = { Schedule: useRef(null), Habits: useRef(null) };
+  // On a phone, a link to the Schedule or Habits tab opens the page at that section.
+  useEffect(() => {
+    if (phone && (subtab === 'Schedule' || subtab === 'Habits')) sections[subtab].current?.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+  }, [phone, subtab]); // eslint-disable-line react-hooks/exhaustive-deps
+  const programme = hasProgram(client) ? <>
       <section className="card"><span className="eyebrow">{client.program.phase}</span><h2>{t(client.program.name)}</h2><p>{t('{weeks} weeks · ends {shortDate}', { weeks: client.program.weeks, shortDate: shortDate(client.programEnd) })}</p><Button onClick={onEdit}>{t('Edit programme')} <ArrowRight size={17}/></Button><ProgramTemplates key={client.program.id} client={client} replacing done={templateNote} setDone={setTemplateNote}/></section>
       <section className="card programme-week-summary" aria-label={t('Weekly schedule')}><span className="eyebrow">{t('EACH WEEK')}</span>
         <ol>{programWeek(client, dayKey()).map((id, i) => <li key={WEEKDAYS[i]}><span>{t(WEEKDAYS[i])}</span><b>{id ? t(client.program.days.find(d => d.id === id)?.name || '') : t('Rest day')}</b></li>)}</ol>
       </section>
       <div className="coach-programme-days">{client.program.days.map(day => <MotionDetails key={day.id}><summary><span><b>{t(day.name)}</b><small>{t('{length} exercises · {minutes} min', { length: day.exercises.length, minutes: day.minutes })}</small></span><ChevronRight size={18}/></summary>{day.exercises.map(exercise => <div className="simple-row" key={exercise.id}><span><b>{t(exercise.name)}</b><small>{exercise.sets} × {exercise.reps}{exercise.kind === 'Duration' ? ' sec' : ' reps'} · {exercise.weight} {t('kg ·')} {exercise.rest}{t('s rest')}</small></span></div>)}</MotionDetails>)}</div>
       <ProgressionSuggestions client={client}/>
-    </>}
-    {tab === 'Schedule' && <><SmartSchedule client={client} coach/><ScheduleEditor client={client}/><TravelPlan client={client}/></>}
-    {tab === 'Habits' && <HabitEditor key={client.id} client={client}/>}
+    </>
+    : <section className="card"><h2>{t('No programme yet')}</h2><p className="muted">{t('Build {name}’s workouts and choose which days of the week they train. The client sees their plan as soon as you save it.', { name: client.name.split(' ')[0] })}</p><Button onClick={onEdit}>{t('Create programme')} <ArrowRight size={17}/></Button><ProgramTemplates client={client} done={templateNote} setDone={setTemplateNote}/></section>;
+  const schedule = <><SmartSchedule client={client} coach/><ScheduleEditor client={client}/><TravelPlan client={client}/></>;
+  const habits = <HabitEditor key={client.id} client={client}/>;
+  if (phone) return <div className="coach-plan-workspace coach-plan-page">
+    {pending > 0 && <button type="button" className="plan-review-banner" onClick={() => sections.Schedule.current?.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' })}>{t('Schedule changes to review: {count}', { count: pending })}<ArrowRight size={16}/></button>}
+    <section className="plan-section" aria-labelledby="plan-programme"><h2 id="plan-programme">{t('Programme')}</h2>{programme}</section>
+    <section className="plan-section" ref={sections.Schedule} aria-labelledby="plan-schedule"><h2 id="plan-schedule">{t('Schedule')}</h2>{schedule}</section>
+    <section className="plan-section" ref={sections.Habits} aria-labelledby="plan-habits"><h2 id="plan-habits">{t('Habits')}</h2>{habits}</section>
+  </div>;
+  return <div className="coach-plan-workspace">
+    <Tabs label={t('Plan tools')} items={['Programme', ['Schedule', `Schedule${pending ? ` · ${pending} to review` : ''}`], 'Habits']} value={tab} onChange={setSubtab}/>
+    {tab === 'Programme' && programme}
+    {tab === 'Schedule' && schedule}
+    {tab === 'Habits' && habits}
   </div>;
 }
 

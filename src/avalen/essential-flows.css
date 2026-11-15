@@ -8,7 +8,7 @@
 .home-essentials > button > svg:first-child { flex-shrink:0; color:var(--muted); }
 .home-essentials > button > svg:last-child { margin-inline-start:auto; flex-shrink:0; }
 .home-essentials b { display:block; font-size:13px; font-weight:600; }
-.home-essentials small { display:block; font-size:11px; color:var(--muted); line-height:1.5; margin-top:5px; }
+.home-essentials small { display:block; font-size:12px; color:var(--muted); line-height:1.5; margin-top:5px; }
 .home-essentials .is-due small,.home-essentials .is-due > svg:first-child { color:var(--accent-name); }
 .home-coaching-updates:empty { display:none; }
 .home-coaching-updates .ecosystem-updates { margin-bottom:24px; }
@@ -37,19 +37,30 @@
 .coach-task-workspace { max-width:900px; margin-bottom:26px; }
 .coach-task-workspace > .section-head { margin-bottom:6px; }
 .coach-task-workspace > .tabs { margin:0; }
-.coach-task-workspace > .tabs button { display:flex; align-items:center; gap:7px; padding-inline:12px; white-space:nowrap; }
-.coach-task-workspace > .tabs button small { font-size:10px; color:var(--muted); background:var(--surface-raised); padding:2px 5px; border-radius:3px; }
+/* Review-queue filters: each count sits in its own pill; the row scrolls sideways rather than squeezing (DR-03). */
+.coach-task-workspace > .tabs { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
+.coach-task-workspace > .tabs::-webkit-scrollbar { display:none; }
+.coach-task-workspace > .tabs button { flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding-inline:10px; white-space:nowrap; }
+.coach-task-workspace > .tabs button small { display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; border-radius:999px; font-size:12px; line-height:1; font-variant-numeric:tabular-nums; color:var(--muted); background:var(--surface-raised); }
 .coach-task-workspace .review-queue-item { padding:18px 0; }
 .coach-task-workspace .review-queue-item .review-queue-person { margin-bottom:9px; }
 .coach-task-workspace .review-queue-item h3 { font-size:15px; }
 .coach-task-workspace .review-queue-item p { margin:6px 0 10px; }
 .coach-task-workspace .review-queue-item > details { margin-top:4px; }
-.coach-task-workspace .review-queue-item > details > summary { min-height:34px; font-size:11px; }
+.coach-task-workspace .review-queue-item > details > summary { min-height:34px; font-size:12px; }
 .coach-secondary-section { border-top:1px solid var(--line); max-width:900px; }
-.coach-secondary-section > summary { display:flex; justify-content:space-between; align-items:center; min-height:58px; cursor:pointer; font-size:14px; }
+.coach-secondary-section > summary { display:flex; justify-content:space-between; align-items:center; min-height:58px; cursor:pointer; font-size:15px; }
 .coach-secondary-section[open] > summary > svg { transform:rotate(90deg); }
 .coach-client-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:-6px 0 22px; }
 .coach-client-actions > span { font-size:12px; color:var(--muted); }
+/* A coach's client page on phones: a compact header so the task starts higher up (DR-02). */
+@media (max-width:760px) {
+ .review-client-navigation { margin:0 0 6px; }
+ .page-heading.client-heading { margin:2px 0 8px; padding:0; }
+ .page-heading.client-heading h1 { font-size:24px; line-height:1.15; margin:0; }
+ .page-heading.client-heading:not(.is-overview) .page-subtitle { display:none; }
+ .page-heading.client-heading + .coach-client-actions { margin:0 0 6px; }
+}
 .client-sections { border-bottom:1px solid var(--line); margin-bottom:24px; }
 .client-sections > .tabs { margin-bottom:0; border-bottom:0; }
 .client-sections > .tabs button { padding-inline:10px; }
@@ -62,8 +73,8 @@
 /* Stable working area: enter, log, rest. History is a compact reference below. */
 .focused-workout .logger-session-progress { display:flex; align-items:center; gap:12px; padding:0 0 4px; }
 .logger-session-progress > span { height:3px; background:var(--line); flex:1; overflow:hidden; }
-.logger-session-progress i { display:block; width:100%; height:100%; background:var(--green); transform-origin:left; transition:transform 180ms ease-out; }
-.logger-session-progress small { font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.logger-session-progress i { display:block; width:100%; height:100%; background:var(--green); transform-origin:left; transition:transform var(--motion-state) ease-out; }
+.logger-session-progress small { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
 .focused-workout .logger-workout-heading { padding:8px 0 10px; }
 .focused-workout .logger-workout-heading h2 { color:var(--text); font-size:26px; margin-top:6px; }
 .focused-workout .logger-workout-heading > span { color:var(--muted); }
@@ -76,12 +87,12 @@
 .focused-workout .logger-working-area { position:relative; }
 .focused-workout .set-editor-heading { align-items:baseline; margin-bottom:12px; gap:8px; }
 .focused-workout .set-editor-heading > b { font-size:16px; font-weight:600; }
-.focused-workout .set-editor-heading > span { font-size:11px; color:var(--muted); max-width:60%; }
+.focused-workout .set-editor-heading > span { font-size:12px; color:var(--muted); max-width:60%; }
 .focused-workout .set-controls { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
 .focused-workout .set-control { background:var(--card); border:1px solid var(--line); border-radius:3px; color:var(--text); }
 .focused-workout .set-control label { padding:10px 0 0; }
 .focused-workout .set-control label > span { display:flex; justify-content:space-between; text-align:start; padding:0 12px; font-size:12px; }
-.focused-workout .set-control label small { font-size:11px; color:var(--muted); }
+.focused-workout .set-control label small { font-size:12px; color:var(--muted); }
 .focused-workout .set-control input { color:var(--text); height:56px; font-size:34px; font-weight:600; line-height:1; padding:4px 10px; }
 .focused-workout .set-control:focus-within { border-color:var(--green); }
 .focused-workout .set-adjust { border-color:var(--line); }
@@ -91,42 +102,42 @@
 .focused-workout .set-action-area > .primary:disabled { background:var(--card); color:var(--muted); }
 .focused-workout .set-effort { margin:4px 0 0; }
 .focused-workout .set-effort summary { min-height:38px; font-size:12px; }
-.logger-feedback { display:flex; align-items:center; gap:6px; min-height:24px; color:var(--muted); font-size:11px; }
+.logger-feedback { display:flex; align-items:center; gap:6px; min-height:24px; color:var(--muted); font-size:12px; }
 .focused-workout .logger-set-list { margin:18px 0 12px; }
 .focused-workout .logger-set-labels,.focused-workout .logger-set-row { grid-template-columns:30px minmax(0,1fr) 48px; gap:8px; padding-inline:4px; }
-.focused-workout .logger-set-labels { font-size:10px; margin-top:0; padding-bottom:8px; }
+.focused-workout .logger-set-labels { font-size:12px; margin-top:0; padding-bottom:8px; }
 .focused-workout .logger-set-row { min-height:44px; border-radius:0; background:none; }
 .focused-workout .logger-set-row.current { background:var(--surface-raised); }
 .focused-workout .set-result { justify-content:space-between; width:100%; gap:6px; min-width:0; color:var(--text); font-size:13px; }
-.focused-workout .set-result > small { font-size:10px; color:var(--muted); }
+.focused-workout .set-result > small { font-size:12px; color:var(--muted); }
 .focused-workout .set-undo { width:44px; min-height:44px; color:var(--muted); background:transparent; box-shadow:none; border:0; }
-.focused-workout .set-status { background:none; border:0; opacity:1; font-size:10px; color:var(--muted); }
+.focused-workout .set-status { background:none; border:0; opacity:1; font-size:12px; color:var(--muted); }
 .focused-workout .set-pending { font-size:12px; color:var(--muted); }
 .focused-workout .logger-complete { padding:0 0 12px; }
 .focused-workout .logger-complete p { margin:6px 0 12px; }
 .logger-up-next { display:grid; gap:6px; padding:14px 0; margin:8px 0 12px; border-block:1px solid var(--line); }
-.logger-up-next small { font-size:10px; color:var(--muted); letter-spacing:.06em; }
-.logger-up-next b { font-size:18px; }
+.logger-up-next small { font-size:12px; color:var(--muted); letter-spacing:.06em; }
+.logger-up-next b { font-size:17px; }
 .logger-up-next > span { font-size:12px; color:var(--muted); }
 .focused-workout .logger-rest { position:static; display:grid; grid-template-columns:40px minmax(0,1fr) auto; align-items:center; gap:10px; margin:0 0 16px; padding:10px; background:var(--surface-inset); border-color:var(--line); }
 .focused-workout .logger-rest > .rest-orbit { width:40px; height:40px; flex:none; }
 .focused-workout .rest-copy { min-width:0; }
 .focused-workout .rest-copy > b { font-size:20px; }
-.focused-workout .rest-copy > span { font-size:10px; }
+.focused-workout .rest-copy > span { font-size:12px; }
 .focused-workout .rest-copy .rest-next-label { display:none; }
 .focused-workout .rest-controls { display:flex; gap:0; }
-.focused-workout .rest-controls > button { min-height:44px; min-width:40px; padding-inline:5px; font-size:11px; }
+.focused-workout .rest-controls > button { min-height:44px; min-width:40px; padding-inline:5px; font-size:12px; }
 .focused-workout .logger-exercise-dock { display:flex; position:sticky; bottom:-22px; margin:10px 0 -22px; min-height:64px; gap:12px; border-top:1px solid var(--line); background:var(--bg); padding:8px 0 max(10px,env(safe-area-inset-bottom)); z-index:4; }
 .logger-open-exercises { display:flex; gap:10px; align-items:center; flex:1; text-align:start; min-height:44px; }
 .logger-open-exercises > span { flex:1; }
 .logger-open-exercises b { display:block; font-size:13px; }
-.logger-open-exercises small { display:block; font-size:10px; color:var(--muted); margin-top:4px; }
+.logger-open-exercises small { display:block; font-size:12px; color:var(--muted); margin-top:4px; }
 .logger-pause { min-height:44px; font-size:12px; color:var(--muted); padding-inline-start:10px; border-inline-start:1px solid var(--line); }
 .logger-exercise-picker { margin-top:20px; }
 .logger-exercise-picker > button { display:flex; gap:14px; align-items:center; text-align:start; min-height:76px; padding:14px 0; border-top:1px solid var(--line); width:100%; }
 .logger-exercise-picker > button > span:first-child { font-size:12px; color:var(--muted); width:26px; }
 .logger-exercise-picker > button > span:nth-child(2) { flex:1; }
-.logger-exercise-picker b { font-size:14px; }
+.logger-exercise-picker b { font-size:15px; }
 .logger-exercise-picker small { display:block; font-size:12px; color:var(--muted); margin-top:6px; }
 .logger-exercise-picker > button[aria-current] > span:first-child { color:var(--green); }
 .logger-finish-warning { color:var(--muted); font-size:13px; line-height:1.6; margin-top:14px; }
@@ -153,15 +164,14 @@
  .home-today-content { padding:20px; }
  .home-today-content > div { flex-wrap:nowrap; gap:14px; }
  .home-today-content .primary { flex:1; padding-inline:12px; }
- .home-today-content .hero-detail { font-size:11px; }
+ .home-today-content .hero-detail { font-size:12px; }
  .home-essentials { margin-bottom:20px; }
  .home-essentials > button { gap:8px; }
- .home-essentials small { font-size:10px; }
+ .home-essentials small { font-size:12px; }
  .coach-client-actions { margin-bottom:16px; }
  .client-sections > .tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); overflow:visible; }
- .client-sections > .tabs button { min-width:0; padding-inline:2px; font-size:11px; }
+ .client-sections > .tabs button { min-width:0; padding-inline:2px; font-size:12px; }
  .coach-day-summary { margin-bottom:22px; }
- .coach-task-workspace > .tabs button { padding-inline:9px; font-size:12px; }
 }
 @media (max-width:360px) {
  .home-essentials > button > svg:first-child { display:none; }
@@ -173,9 +183,8 @@
  .focused-workout .rest-controls { grid-column:1 / -1; justify-content:space-between; }
  .focused-workout .rest-controls > button { min-height:36px; }
  .focused-workout .set-control input { font-size:30px; }
- .focused-workout .set-editor-heading > span { font-size:10px; }
- .coach-task-workspace > .tabs button { padding-inline:6px; font-size:11px; gap:4px; }
- .client-sections > .tabs button { font-size:10px; }
+ .focused-workout .set-editor-heading > span { font-size:12px; }
+ .client-sections > .tabs button { font-size:12px; }
 }
 /* Resolve legacy logger layout rules within the focused logger only. */
 .focused-workout { color:var(--text); }
@@ -194,7 +203,7 @@
 .coach-programme-days { margin-bottom:24px; }
 .coach-programme-days > details { border-bottom:1px solid var(--line); }
 .coach-programme-days > details > summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:76px; cursor:pointer; }
-.coach-programme-days b { font-size:14px; }
+.coach-programme-days b { font-size:15px; }
 .coach-programme-days small { display:block; font-size:12px; color:var(--muted); margin-top:6px; }
 .coach-programme-days .simple-row { padding-inline-start:12px; }
 .coach-programme-days > details[open] > summary > svg { transform:rotate(90deg); }
@@ -202,9 +211,43 @@
  .focused-workout .rest-controls { grid-column:1 / -1; grid-row:2; border-top:1px solid var(--line); }
 }
 
-.coach-task-workspace > .tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; overflow:visible; }
-.coach-task-workspace > .tabs button { min-width:0; padding-inline:4px; justify-content:center; gap:5px; font-size:12px; }
-@media (max-width:360px) { .coach-task-workspace > .tabs button { font-size:10px; gap:3px; } }
 .focused-workout .set-number,.focused-workout .set-adjust span { color:var(--muted); }
 .focused-workout .logger-set-labels { color:var(--muted); }
 .focused-workout .logger-set-row .set-status { opacity:1; color:var(--muted); }
+
+/* Hit areas of at least 44 × 44 pt (DR-05).
+   Meal steppers keep their 36 pt look; an invisible layer centred on each extends the tappable area. Their 8 pt gap stops the layers overlapping. */
+.meal-food-stepper button { position: relative; }
+.meal-food-stepper button::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+.meal-food-stepper { gap: 8px; }
+.meal-foods-editor li { flex-wrap: wrap; }
+.meal-food-menu { flex-basis: 100%; display: flex; justify-content: flex-end; }
+/* Short text links ("Edit", "Keep") are at least 44 pt wide; they were already 44 pt tall. */
+.text-link { min-width: 44px; }
+/* Text-only rows in the logger: a later stylesheet had shrunk "Finish session early" to 36 pt. */
+.focused-workout details.set-effort > summary, button.logger-finish { min-height: 44px; }
+/* Exercise buttons clip their contents, so they grow to 44 pt instead (4 pt taller). */
+.logger-exercise-rail > button[aria-label] { min-height: 44px; }
+.logger-exercise-rail > button[aria-label] > span { min-height: 40px; }
+/* Client page sections on phones: natural widths with fixed spacing, scrolling sideways if needed, so the
+   12 pt labels (DR-04) don't run together. The tabs scroll the active one into view. */
+@media (max-width:760px) {
+ .client-sections > .tabs[role="tablist"] { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; justify-content:flex-start; }
+ .client-sections > .tabs[role="tablist"]::-webkit-scrollbar { display:none; }
+ .client-sections > .tabs[role="tablist"] button { flex:0 0 auto; min-width:0; padding-inline:8px; white-space:nowrap; }
+}
+/* Reason chips above a plan-change reason (DR-06). 36 pt pills; an invisible layer makes each 44 pt tall to tap. */
+.reason-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+.reason-chips button { position: relative; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text); font-size: 13px; }
+.reason-chips button::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+.reason-chips button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
+/* Phones: the client's plan as one page with three titled sections (DR-09). */
+.coach-plan-page { display: grid; gap: 28px; }
+.coach-plan-page .plan-section { display: grid; gap: 14px; }
+.coach-plan-page .plan-section, .coach-plan-page .plan-section > h2 { scroll-margin-top: 72px; }
+.coach-plan-page .plan-section > h2 { font-size: 20px; margin: 0; }
+.plan-review-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); color: var(--text); font-size: 15px; text-align: start; }
+/* Logger: last session's result under each planned set (DR-10). */
+.logger-set-row .set-pending .set-last { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+/* Programme builder: the button that loads the rest of the exercise library (DR-15). */
+.exercise-library .exercise-library-more { grid-column: 1 / -1; justify-content: center; min-height: 44px; font-weight: 600; }

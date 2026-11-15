@@ -33,7 +33,7 @@ img[src*="/exercises/"],
   color: var(--on-primary);
   border-color: var(--primary);
 }
-.focused-workout .set-action-area > .primary.set-just-logged { animation: set-logged 760ms ease-out both; }
+.focused-workout .set-action-area > .primary.set-just-logged { animation: set-logged var(--motion-earned) ease-out both; }
 .focused-workout .set-action-area > .primary.set-just-logged svg { animation: motion-check var(--motion-panel) var(--ease-settle) both; }
 .logger-dock-stack { position: sticky; bottom: 0; z-index: 4; margin-top: 10px; background: var(--bg); }
 .focused-workout .logger-dock-stack .logger-exercise-dock { position: static; margin: 0; }
@@ -49,8 +49,8 @@ img[src*="/exercises/"],
   animation: rest-rise var(--motion-sheet) var(--ease-sheet) both;
 }
 .logger-feedback:empty { min-height: 0; }
-.logger-rest .rest-orbit svg circle:not(.rest-track) { transition: stroke-dashoffset 250ms linear; }
-.logger-rest.rest-complete { animation: rest-done 700ms ease-out both; }
+.logger-rest .rest-orbit svg circle:not(.rest-track) { transition: stroke-dashoffset var(--motion-panel) linear; }
+.logger-rest.rest-complete { animation: rest-done var(--motion-earned) ease-out both; }
 @keyframes set-logged {
   0%, 38% { background-color: var(--green); border-color: var(--green); }
   100% { background-color: var(--primary); border-color: var(--primary); }
@@ -101,7 +101,7 @@ img[src*="/exercises/"],
 
 /* Nutrition: the disclosure's summary already names this section. */
 .nutrition-updates { border-block: 1px solid var(--line); margin: 0 0 26px; }
-.nutrition-updates > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 0; cursor: pointer; font-size: 14px; }
+.nutrition-updates > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 0; cursor: pointer; font-size: 15px; }
 .nutrition-updates > summary small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
 .nutrition-updates[open] > summary > svg { transform: rotate(90deg); }
 .nutrition-updates .daily-updates > h2 { display: none; }
@@ -151,8 +151,8 @@ img[src*="/exercises/"],
 .inbox-client-list b { display: block; font-size: 15px; font-weight: 600; }
 .inbox-client-list > button > span:nth-of-type(2) small { display: block; margin-top: 3px; overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .inbox-thread-meta { display: grid; justify-items: end; gap: 5px; }
-.inbox-thread-meta time, .inbox-thread-meta small { color: var(--muted); font-size: 11px; }
-.inbox-thread-meta em { display: grid; place-items: center; min-width: 20px; height: 20px; padding-inline: 5px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: 11px; font-style: normal; font-weight: 700; }
+.inbox-thread-meta time, .inbox-thread-meta small { color: var(--muted); font-size: 12px; }
+.inbox-thread-meta em { display: grid; place-items: center; min-width: 20px; height: 20px; padding-inline: 5px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: 12px; font-style: normal; font-weight: 700; }
 .inbox-back { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; margin: 0 0 6px; }
 @media (max-width: 760px) {
   .inbox-workspace.is-list > .inbox-thread, .inbox-workspace.is-thread > .inbox-client-list { display: none; }
@@ -207,20 +207,20 @@ img[src*="/exercises/"],
 .review-queue-item:not(.review-queue-next) .button-row .primary { width: auto; min-height: 38px; padding-inline: 12px; font-size: 12px; }
 .client-card { padding: 14px 16px; }
 .client-card .client-mini { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 8px 0 0; padding: 0; border: 0; }
-.client-card .client-mini span { display: inline-flex; align-items: baseline; gap: 5px; color: var(--muted); font-size: 11px; white-space: nowrap; }
-.client-card .client-mini b { color: var(--text); font-size: 14px; }
+.client-card .client-mini span { display: inline-flex; align-items: baseline; gap: 5px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.client-card .client-mini b { color: var(--text); font-size: 15px; }
 .client-card > p { margin: 8px 0 0; font-size: 12px; }
 .client-sections { position: sticky; top: 0; z-index: 6; background: var(--bg); }
 
 /* Load-in: the mark in #boot draws itself, then the screen fades up beneath it. */
-.brand-splash { z-index: 60; transition: opacity 380ms ease; }
+.brand-splash { z-index: 60; transition: opacity var(--motion-screen) ease; }
 .brand-splash.is-lifting { opacity: 0; pointer-events: none; }
 
 /* First impression: mark, then photograph, then words. */
 .editorial-welcome { overflow: clip; }
 .editorial-welcome-photo { animation: photo-settle 1500ms var(--ease-precise) both; }
-.editorial-welcome-wordmark { animation: rise-in 620ms var(--ease-precise) 140ms both; }
-.motion-stage > * { animation: rise-in 620ms var(--ease-precise) both; }
+.editorial-welcome-wordmark { animation: rise-in var(--motion-earned) var(--ease-precise) 140ms both; }
+.motion-stage > * { animation: rise-in var(--motion-earned) var(--ease-precise) both; }
 .motion-stage > :nth-child(1) { animation-delay: 220ms; }
 .motion-stage > :nth-child(2) { animation-delay: 280ms; }
 .motion-stage > :nth-child(3) { animation-delay: 360ms; }
@@ -235,7 +235,7 @@ img[src*="/exercises/"],
 .home-today-session { overflow: hidden; }
 
 /* Small confirmations. */
-.bottom-nav button.active svg { animation: nav-pop 340ms var(--ease-settle); }
+.bottom-nav button.active svg { animation: nav-pop var(--motion-screen) var(--ease-settle); }
 @keyframes nav-pop { 0% { transform: translateY(-1px) scale(.84); } 100% { transform: translateY(-1px) scale(1); } }
 .primary > svg.lucide-arrow-right { transition: transform var(--motion-state) var(--ease-settle); }
 .primary:active:not(:disabled) > svg.lucide-arrow-right { transform: translateX(3px); }

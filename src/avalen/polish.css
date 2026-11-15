@@ -7,17 +7,17 @@
 .home-macro > small,
 .home-macro-ring span small,
 .planned-meal > div > span,
-.three-stats .stat > span { font-size: 10.5px; }
+.three-stats .stat > span { font-size: 12px; }
 
 /* The coach's cue label sits on its own line above the cue. */
 .exercise-coach-cue { padding: 14px 0; line-height: 1.6; }
-.exercise-coach-cue > span { display: block; margin-bottom: 8px; font-size: 10.5px; letter-spacing: .12em; color: var(--muted); }
+.exercise-coach-cue > span { display: block; margin-bottom: 8px; font-size: 12px; letter-spacing: .12em; color: var(--muted); }
 .exercise-sheet-actions { display: grid; gap: 10px; margin-top: 16px; }
 .exercise-sheet-actions > button { width: 100%; margin: 0; }
 
 /* Milestones read left to inset-inline-end: mark, name, status. */
 .simple-row.milestone-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; }
-.simple-row.milestone-row > b { margin-inline-start: 0; font-size: 14px; font-weight: 500; text-align: start; white-space: normal; }
+.simple-row.milestone-row > b { margin-inline-start: 0; font-size: 15px; font-weight: 500; text-align: start; white-space: normal; }
 .milestone-row > span:last-child { font-size: 12px; white-space: nowrap; }
 .milestone-row > span:first-child { display: grid; place-items: center; }
 
@@ -32,5 +32,10 @@
     padding-inline-end: 30px;
     -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 30px), transparent);
     mask-image: linear-gradient(to right, #000 calc(100% - 30px), transparent);
+  }
+  /* Right-to-left rows start on the right, so they fade out on the left (DR-17). */
+  [dir="rtl"] .page .tabs {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 30px), transparent);
+    mask-image: linear-gradient(to left, #000 calc(100% - 30px), transparent);
   }
 }

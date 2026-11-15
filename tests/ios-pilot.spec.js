@@ -77,3 +77,44 @@ test('in a browser (not the iPhone app) the web app is unchanged', async ({ page
   await nav(page, 'Business').click();
   await expect(page.locator('.pay-connect')).toContainText('Paymob');
 });
+
+test('iPhone coach: recovery cards stay hidden until a client enters a reading', async ({ page }) => {
+  await demo(page, { role: 'coach' });
+  await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Alex\./ })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Client recovery' })).toHaveCount(0);
+  await nav(page, 'Clients').click();
+  await page.locator('.client-card').filter({ hasText: 'Jordan Williams' }).click();
+  await expect(page.getByRole('heading', { name: 'Jordan Williams' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Sleep and recovery' })).toHaveCount(0);
+
+  // Jordan enters last night's readings by hand; the coach's cards appear with them.
+  await page.getByLabel('Workspace role').selectOption('client');
+  await nav(page, 'More').click();
+  await page.locator('.settings-disclosure > summary').filter({ hasText: 'Sleep & recovery' }).click();
+  await page.locator('.wearable-connections').getByRole('button', { name: /Enter readings manually/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Enter readings' });
+  await dialog.getByLabel('Sleep (hours)').fill('7.5');
+  await dialog.getByRole('button', { name: 'Save readings' }).click();
+  await expect(dialog).toHaveCount(0);
+  await page.getByLabel('Workspace role').selectOption('coach');
+  await nav(page, 'Home').click();
+  await expect(page.getByRole('region', { name: 'Client recovery' })).toContainText('Jordan Williams');
+  await nav(page, 'Clients').click();
+  await page.locator('.client-card').filter({ hasText: 'Jordan Williams' }).click();
+  await expect(page.getByRole('region', { name: 'Sleep and recovery' })).toContainText('7h 30m');
+});
+
+test('iPhone client: each planned set shows last session\'s result, and logging a set and finishing work with haptics', async ({ page }) => {
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await demo(page);
+  await page.getByRole('button', { name: 'View Upper Body A', exact: true }).click();
+  await page.getByRole('button', { name: 'Begin Workout' }).click();
+  const rows = page.locator('.logger-set-row .set-pending');
+  await expect(rows.first().locator('.set-last')).toHaveText(/^last \d+(\.\d+)? × \d+$/);
+  await page.getByRole('button', { name: 'Log set 1', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Edit set 1', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Finish session early' }).click();
+  await page.getByRole('button', { name: 'Finish & see results' }).click();
+  await expect(page.getByRole('heading', { name: 'You showed up.' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

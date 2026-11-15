@@ -39,14 +39,14 @@
   pointer-events: none;
   animation: body-scan 1200ms var(--ease-precise) 120ms both;
 }
-.body-flip { position: relative; transform-style: preserve-3d; transition: transform 640ms var(--ease-settle); }
+.body-flip { position: relative; transform-style: preserve-3d; transition: transform var(--motion-earned) var(--ease-settle); }
 .recovery-stage[data-side="back"] .body-flip { transform: rotateY(180deg); }
 .body-face { backface-visibility: hidden; }
 .body-face.is-back { position: absolute; inset: 0; transform: rotateY(180deg); }
 .body-svg { display: block; width: 100%; height: auto; overflow: visible; }
 .body-base { fill: #1f1f1f; }
-.body-muscle { cursor: pointer; transform-box: fill-box; transform-origin: center; animation: muscle-in 560ms var(--ease-settle) both; animation-delay: calc(var(--i) * 34ms + 160ms); }
-.body-muscle path { fill: var(--rec-idle); stroke: #000; stroke-width: .6; transition: fill 620ms ease, opacity var(--motion-state) ease; }
+.body-muscle { cursor: pointer; transform-box: fill-box; transform-origin: center; animation: muscle-in var(--motion-earned) var(--ease-settle) both; animation-delay: calc(var(--i) * 34ms + 160ms); }
+.body-muscle path { fill: var(--rec-idle); stroke: #000; stroke-width: .6; transition: fill var(--motion-earned) ease, opacity var(--motion-state) ease; }
 .body-muscle.is-ready path { fill: var(--rec-ready); }
 .body-muscle.is-recovering path { fill: var(--rec-warm); }
 .body-muscle.is-hot path { fill: var(--rec-hot); }
@@ -56,13 +56,13 @@
 .body-muscle.is-selected { filter: drop-shadow(0 0 6px #ffffff8c); }
 
 .recovery-segments { position: relative; display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); padding: 3px; border: 1px solid var(--rec-line); border-radius: 999px; background: #0000005c; }
-.recovery-segments > i { position: absolute; inset-block: 3px; inset-inline-start: 3px; width: calc((100% - 6px) / var(--count)); border-radius: 999px; background: #ffffff21; transform: translateX(calc(var(--active) * 100%)); transition: transform 320ms var(--ease-settle); }
+.recovery-segments > i { position: absolute; inset-block: 3px; inset-inline-start: 3px; width: calc((100% - 6px) / var(--count)); border-radius: 999px; background: #ffffff21; transform: translateX(calc(var(--active) * 100%)); transition: transform var(--motion-screen) var(--ease-settle); }
 .recovery-segments > button { position: relative; z-index: 1; min-height: 38px; border: 0; background: none; color: var(--rec-muted); font-size: 12px; font-weight: 600; }
 .recovery-segments > button[aria-pressed="true"] { color: #fff; }
 .recovery-card > .recovery-segments { margin-top: 14px; }
 
 .recovery-list { display: grid; gap: 2px; min-width: 0; }
-.recovery-row { display: grid; grid-template-columns: 11px minmax(0, 1fr); gap: 11px; align-items: center; width: 100%; min-height: 46px; padding: 3px 4px; border: 0; border-radius: 8px; background: none; color: #fff; text-align: start; animation: row-in 420ms var(--ease-precise) both; animation-delay: calc(var(--i) * 45ms); }
+.recovery-row { display: grid; grid-template-columns: 11px minmax(0, 1fr); gap: 11px; align-items: center; width: 100%; min-height: 46px; padding: 3px 4px; border: 0; border-radius: 8px; background: none; color: #fff; text-align: start; animation: row-in var(--motion-screen) var(--ease-precise) both; animation-delay: calc(var(--i) * 45ms); }
 .recovery-row > i, .recovery-legend i { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--rec-idle); box-shadow: inset 0 0 0 1px #ffffff2e; }
 .recovery-row.is-ready > i, .recovery-legend .is-ready i { background: var(--rec-ready); }
 .recovery-row.is-recovering > i, .recovery-legend .is-recovering i { background: var(--rec-warm); }
@@ -70,8 +70,8 @@
 .recovery-row b { display: block; font-size: 15px; font-weight: 600; }
 .recovery-row small { display: block; margin-top: 1px; color: var(--rec-muted); font-size: 12px; }
 .recovery-row.is-selected { background: #ffffff14; }
-.recovery-detail { margin-top: 12px; padding: 12px; border-radius: 10px; background: #ffffff0f; animation: row-in 280ms var(--ease-precise) both; }
-.recovery-detail b { font-size: 14px; }
+.recovery-detail { margin-top: 12px; padding: 12px; border-radius: 10px; background: #ffffff0f; animation: row-in var(--motion-panel) var(--ease-precise) both; }
+.recovery-detail b { font-size: 15px; }
 .recovery-detail p { margin: 4px 0 0; color: #d6d6d6; font-size: 13px; line-height: 1.5; }
 .recovery-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 14px; color: var(--rec-muted); font-size: 12px; }
 .recovery-legend span { display: inline-flex; align-items: center; gap: 6px; }

@@ -13,6 +13,7 @@ import { libraryWithCatalogue, planExercise, regionOf } from './exercise-catalog
 import { useEditDraft } from './edit-draft.jsx';
 
 import { t } from './i18n.js';
+import { setLoggedHaptic, workoutFinishedHaptic } from './haptics.js';
 function SetEditor({initial, onChange, onSubmit, number, total, previous, editing, cancel, duration = false, busy = false, justLogged = false, pips = [], ready = false}) {
   const [values, setValues] = useState(initial);
   const inputs = useRef({});
@@ -146,6 +147,7 @@ export function Workout({onClose, onFinish}) {
       setAnnouncement(`Set ${next} ${skipped ? 'skipped' : 'saved'}.`);
       if (!skipped) setSaved({id: recordId, number: next});
       navigator.vibrate?.(15);
+      if (!skipped) setLoggedHaptic();
     } catch (e) {setError(e.message); lastSaved.current = null;}
     finally {operationLock.current = false; setSavingSet(false);}
   }
@@ -186,7 +188,7 @@ export function Workout({onClose, onFinish}) {
     </div>
     <div className="logger-set-list" aria-label={t('Set history')}>
       <div className="logger-set-labels"><span>{t('Set')}</span><span>{t('Weight ·')} {ex.kind === 'Duration' ? 'seconds' : 'reps'}</span><span>{t('Status')}</span></div>
-      {slots.map(n => {const s = logged.find(x => x.set === n); return <div key={n} className={`logger-set-row ${s ? 'done' : n === next ? 'current' : ''} ${s?.id === saved?.id ? 'just-saved' : ''}`}><span className="set-number">{n}</span>{s ? <button className="set-result" aria-label={t('Edit set {n}', { n })} disabled={savingSet} onClick={() => {setEditId(s.id); exerciseBody.current?.scrollIntoView({block: 'nearest', behavior: 'instant'});}}><span>{s.skipped ? t('Skipped') : t('{weight} kg × {reps}{value}', { weight: s.weight, reps: s.reps, value: ex.kind === 'Duration' ? ' sec' : '' })}</span><small>{s.skipped ? t('Change') : t('Edit')}</small><span className="sr-only">{s.skipped ? '' : `${s.weight} × ${s.reps}`}</span></button> : <span className="set-pending">{ex.weight || 0} {t('kg ×')} {ex.reps}{ex.kind === 'Duration' ? ' sec' : ''}</span>}{s ? <button className="set-undo" aria-label={t('Undo set {n}', { n })} disabled={savingSet} onClick={async event => {
+      {slots.map(n => {const s = logged.find(x => x.set === n); return <div key={n} className={`logger-set-row ${s ? 'done' : n === next ? 'current' : ''} ${s?.id === saved?.id ? 'just-saved' : ''}`}><span className="set-number">{n}</span>{s ? <button className="set-result" aria-label={t('Edit set {n}', { n })} disabled={savingSet} onClick={() => {setEditId(s.id); exerciseBody.current?.scrollIntoView({block: 'nearest', behavior: 'instant'});}}><span>{s.skipped ? t('Skipped') : t('{weight} kg × {reps}{value}', { weight: s.weight, reps: s.reps, value: ex.kind === 'Duration' ? ' sec' : '' })}</span><small>{s.skipped ? t('Change') : t('Edit')}</small><span className="sr-only">{s.skipped ? '' : `${s.weight} × ${s.reps}`}</span></button> : <span className="set-pending">{ex.weight || 0} {t('kg ×')} {ex.reps}{ex.kind === 'Duration' ? ' sec' : ''}{prior[n - 1] && <small className="set-last">{t('last {weight} × {reps}{value}', { weight: round(prior[n - 1].weight), reps: prior[n - 1].reps, value: ex.kind === 'Duration' ? ' sec' : '' })}</small>}</span>}{s ? <button className="set-undo" aria-label={t('Undo set {n}', { n })} disabled={savingSet} onClick={async event => {
         if (event.detail > 1 || (lastSaved.current?.id === s.id && performance.now() - lastSaved.current.at < 400)) return;
         const result = await patch(d => {d.sets = d.sets.filter(x => x.id !== s.id); changeRest(d, 'skip');});
         if (result?.error) {setError(result.error); return;}
@@ -215,6 +217,7 @@ export function Workout({onClose, onFinish}) {
       if (finishing || finishLock.current || operationLock.current) return; finishLock.current=true; setFinishing(true);
       const result = await update(d => {d.drafts[client.id].note=noteDraft.value.note;finishSession(d, d.drafts[client.id]);});
       if (result?.error) {setError(result.error); finishLock.current=false; setFinishing(false); return;}
+      workoutFinishedHaptic();
       clearWorkoutInput(draft.id); noteDraft.clear({note:''}); onFinish(draft.id);
     }}>{finishing ? t('Saving workout…') : t('Finish & see results')}</Button><Button secondary disabled={finishing} onClick={() => setConfirm(false)}>{t('Keep going')}</Button>{!draft.sets.some(s => !s.skipped) && <Button secondary disabled={finishing} onClick={async () => {const result = await update(d => {delete d.drafts[client.id];}); if (result?.error) {setError(result.error); return;} clearWorkoutInput(draft.id); noteDraft.clear({note:''}); onClose();}}>{t('Discard empty workout')}</Button>}</div>{error && <p className="error" role="alert">{error}</p>}</Modal>}
   </Modal>;

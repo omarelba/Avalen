@@ -58,7 +58,7 @@ for(const kind of ['brand','billing','habits','measurements']) test(`${kind} rep
     await clientSection(page,'Billing');input=page.getByLabel('Amount',{exact:true});await input.fill('3150');
     save=page.getByRole('button',{name:'Save membership',exact:true});success=page.getByText('Membership updated.',{exact:true});
   } else if(kind==='habits') {
-    await clientSection(page,'Plan');await page.getByRole('tab',{name:'Habits',exact:true}).click();
+    await clientSection(page,'Plan');await page.getByRole('region',{name:'Habits',exact:true}).scrollIntoViewIfNeeded();
     input=page.getByLabel('Daily target',{exact:true}).first();await input.fill('3');
     save=page.getByRole('button',{name:'Save habit targets',exact:true});success=page.getByText('Habit targets updated.',{exact:true});
   } else {

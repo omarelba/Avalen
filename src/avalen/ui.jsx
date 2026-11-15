@@ -138,15 +138,15 @@ export function Tabs({ items, value, onChange, label = "Sections" }) {
     </div>
   );
 }
-export function Heading({ title, subtitle, action, eyebrow }) {
+export function Heading({ title, subtitle, action, eyebrow, className }) {
   return (
-    <div className="page-heading">
+    <div className={className ? `page-heading ${className}` : "page-heading"}>
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}
       <div>
         <h1>{title}</h1>
         {action}
       </div>
-      {subtitle && <p>{subtitle}</p>}
+      {subtitle && <p className="page-subtitle">{subtitle}</p>}
     </div>
   );
 }

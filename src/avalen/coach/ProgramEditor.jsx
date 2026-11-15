@@ -12,6 +12,10 @@ import { BACKGROUNDS, Button, Field, Modal, Tabs } from '../ui.jsx';
 import { WEEKDAYS, defaultWeek } from '../plan-week.js';
 import { matchesSearch, t } from '../i18n.js';
 import { REGIONS, groupLabel, libraryWithCatalogue, planExercise, regionOf } from '../exercise-catalogue.js';
+import { ReasonChips } from './ReasonChips.jsx';
+
+// How many exercises the builder's library shows before "Show all" (DR-15).
+const LIBRARY_PREVIEW = 24;
 
 export function ProgramEditor({ program, onClose, onSave, draftKey = `template.${program.id}` }) {
   const { data } = useApp();
@@ -24,6 +28,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
   const [dayIndex, setDayIndex] = useState(0),
     [search, setSearch] = useState(""),
     [region, setRegion] = useState("All"),
+    [showAll, setShowAll] = useState(false),
     [error, setError] = useState("");
   const day = draft.days[dayIndex];
   // Monday-first workout ids; a workout removed from the programme becomes a rest day.
@@ -271,13 +276,14 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
           placeholder={t('Add an exercise…')}
           aria-label={t('Search exercise library')}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setShowAll(false); }}
         />
       </label>
-      <Tabs label={t('Muscle group')} items={['All', ...REGIONS.map((name) => [name, groupLabel(name)])]} value={region} onChange={setRegion} />
+      <Tabs label={t('Muscle group')} items={['All', ...REGIONS.map((name) => [name, groupLabel(name)])]} value={region} onChange={(value) => { setRegion(value); setShowAll(false); }} />
       <p className="muted exercise-library-count">{t('{length} movements', { length: choices.length })}</p>
       <div className="exercise-library">
-        {choices.map((ex) => (
+        {/* The first 24 load with the builder; search results and "Show all" list everything (DR-15). */}
+        {(showAll || search.trim() ? choices : choices.slice(0, LIBRARY_PREVIEW)).map((ex) => (
             <button
               key={ex.id}
               onClick={() =>
@@ -290,6 +296,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
               <Plus size={14} />
             </button>
           ))}
+        {!showAll && !search.trim() && choices.length > LIBRARY_PREVIEW && <button type="button" className="exercise-library-more" onClick={() => setShowAll(true)}>{t('Show all {count} exercises', { count: choices.length })}</button>}
       </div>
       <CustomExercise
         onAdded={(ex) =>
@@ -311,6 +318,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
           ))}
         </div>
       </section>
+      <ReasonChips value={reason} onPick={setReason} />
       <Field label={t('Reason for change (saved to client timeline)')}>
         <textarea value={reason} onChange={(e) => setReason(e.target.value)} />
       </Field>

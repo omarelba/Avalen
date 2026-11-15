@@ -146,6 +146,8 @@ export function ClientRecoveryWidget({ summary }) {
   const rows = data.clients.filter((c) => !c.paused).map((client) => ({ client, day: summary[client.id]?.latest })).filter((r) => r.day && r.day.date >= shiftDay(today, -1));
   // Lowest recovery first, then shortest sleep, so the clients to check are on top.
   rows.sort((a, b) => (a.day.metrics.recoveryScore ?? 101) - (b.day.metrics.recoveryScore ?? 101) || (a.day.metrics.sleepMinutes ?? 1e4) - (b.day.metrics.sleepMinutes ?? 1e4));
+  // Without wearable sync (the iPhone pilot) the card could only say there are no readings; it appears once a client adds one (DR-08).
+  if (!rows.length && !wearableSync()) return null;
   return <section className="card wearable-card coach-recovery-widget" aria-label={t('Client recovery')}>
     <div className="wearable-heading"><span>{t('CLIENT RECOVERY')}</span><small>{rows.length} {rows.length === 1 ? 'client' : 'clients'}</small></div>
     {rows.length ? <div className="coach-recovery-list">{rows.map(({ client, day }) => {
@@ -170,6 +172,8 @@ export function CoachWearableCard({ client, onPlan }) {
   const flag = wearableFlag(latest, today);
   const hidden = SHARE_GROUPS.filter(([key]) => share && share[key] === false).map(([, label]) => label.toLowerCase());
   const head = <div className="wearable-heading"><span>{t('SLEEP & RECOVERY')}</span>{latest && <small>{PROVIDERS[latest.provider]?.name}</small>}</div>;
+  // Without wearable sync, hide the card until the client has entered a reading; a loading error still shows (DR-08).
+  if (!wearableSync() && !failed && (loading || !latest)) return null;
   if (loading) return <section className="card wearable-card" aria-label={t('Sleep and recovery')} aria-busy="true">{head}<p className="wearable-empty">{t('Loading wearable readings…')}</p></section>;
   if (!latest) return <section className="card wearable-card" aria-label={t('Sleep and recovery')}>{head}
     <p className="wearable-empty">{failed ? t('Wearable readings couldn’t be loaded. Try again shortly.') : connected?.length ? t('{value} is connected. Readings appear after the first sync.', { value: PROVIDERS[connected[0].provider]?.name }) : hidden.length === 3 ? t('{first} has chosen not to share wearable readings.', { first }) : (wearableSync() ? t('No wearable readings yet. {first} can connect WHOOP, Google Health or Apple Health from You → Connected devices.', { first }) : t('No readings yet. {first} can add them from You → Sleep & recovery.', { first }))}</p>

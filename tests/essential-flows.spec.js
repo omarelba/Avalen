@@ -113,8 +113,24 @@ test('technique reviews are first-class coach tasks and route to the right clien
 });
 
 
-test('coach programme, schedule and habit tools stay distinct and retain navigation on reload', async ({page}) => {
+test('on a phone the coach sees the plan as one page: programme, schedule, then habits', async ({page}) => {
   await demo(page); await page.getByLabel('Workspace role').selectOption('coach'); await nav(page, 'Clients').click(); await page.locator('.client-card').first().click();
+  await page.getByRole('tab', {name:'Plan', exact:true}).click();
+  await expect(page.getByRole('tablist', {name:'Plan tools'})).toHaveCount(0);
+  await expect(page.getByRole('button', {name:'Edit programme', exact:true})).toBeInViewport();
+  const sections = page.locator('.coach-plan-page > .plan-section > h2');
+  await expect(sections).toHaveText(['Programme', 'Schedule', 'Habits']);
+  await page.locator('.coach-programme-days summary').first().click();
+  await expect(page.locator('.coach-programme-days')).toContainText('Bench press');
+  await page.getByRole('region', {name:'Schedule', exact:true}).scrollIntoViewIfNeeded();
+  await expect(page.getByRole('heading', {name:'Adjust the schedule', exact:true})).toBeVisible();
+  await page.getByRole('region', {name:'Habits', exact:true}).scrollIntoViewIfNeeded();
+  await expect(page.getByRole('heading', {name:'Daily foundations', exact:true})).toBeVisible();
+});
+
+test('on a tablet the coach programme, schedule and habit tools stay distinct tabs and retain navigation on reload', async ({page}) => {
+  await page.setViewportSize({width:1024, height:900});
+  await demo(page); await page.getByLabel('Workspace role').selectOption('coach'); await page.locator('aside nav').getByRole('button', {name:'Clients', exact:true}).click(); await page.locator('.client-card').first().click();
   await page.getByRole('tab', {name:'Plan', exact:true}).click();
   await expect(page.getByRole('button', {name:'Edit programme', exact:true})).toBeInViewport();
   await expect(page.getByRole('tab', {name:'Programme', exact:true})).toHaveAttribute('aria-selected','true');

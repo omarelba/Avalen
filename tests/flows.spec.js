@@ -20,7 +20,8 @@ test("coach covers, custom habits, membership and branding flow through to clien
   await page
     .getByRole("button", { name: "Save programme", exact: true })
     .click();
-  await page.getByRole("tab", { name: "Habits", exact: true }).click();
+  // On a phone the coach's plan is one page; Habits is its last section.
+  await page.getByRole("region", { name: "Habits", exact: true }).scrollIntoViewIfNeeded();
   await page.getByRole("button", { name: "Add custom habit" }).click();
   await page.getByLabel("Habit", { exact: true }).last().fill("Evening walk");
   await page.getByRole("button", { name: "Save habit targets" }).click();

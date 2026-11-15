@@ -57,7 +57,8 @@ export function ClientDetail({ client, tab, setTab }) {
         </button>
         {nextReview && <button aria-label={t('Next review: {name} · {reviewAction}', { name: nextReview.client.name, reviewAction: reviewAction(nextReview.flags[0]) })} onClick={() => nextReview.flags[0].tab === 'Messages' ? ask('', '', nextReview.client.id) : selectClient(nextReview.client.id,nextReview.flags[0].tab)}>{t('Next review')} <ArrowRight size={16}/></button>}
       </div>
-      <Heading title={client.name} subtitle={client.goal} />
+      {/* On phones the goal shows on Overview only, to keep the header compact (DR-02). */}
+      <Heading className={tab === "Overview" ? "client-heading is-overview" : "client-heading"} title={client.name} subtitle={client.goal} />
       <div className="coach-client-actions"><Button secondary small onClick={() => ask('', '', client.id)}><MessageCircle size={16}/>{t('Message')} {client.name.split(' ')[0]}</Button><span>{client.paused ? t('Coaching paused') : flags.length ? t('{count} items to review', { count: flags.length }) : t('All caught up')}</span></div>
       {pausing && <Modal title={client.paused ? t('Resume coaching for {value}?', { value: client.name.split(' ')[0] }) : t('Pause coaching for {value}?', { value: client.name.split(' ')[0] })} onClose={() => setPausing(false)} canClose={!saving}>
         <p>{client.paused ? t('Reminders, review items and coaching insights start again from today.') : t('Check-in reminders, review items and coaching insights stop until you resume. Their records, programme and access stay as they are.')}</p>

@@ -2,27 +2,27 @@
    Keep their supporting styles isolated from the workout logger. */
 .resume-card { border: 1px solid #81d3ad44; background: var(--card); border-radius: 18px; padding: 22px; margin-bottom: 16px; }
 .resume-card-top, .resume-card-body { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.resume-card-top { font-size: 10px; color: var(--green); }
+.resume-card-top { font-size: 12px; color: var(--green); }
 .resume-card-top > span { display: flex; align-items: center; gap: 5px; }
 .resume-card-body { margin: 20px 0; }
 .resume-card-body p { color: var(--muted); font-size: 12px; margin-top: 7px; }
 .resume-orbit { width: 60px; height: 60px; position: relative; display: grid; place-items: center; color: var(--green); flex-shrink: 0; }
 .resume-orbit svg:first-child { position: absolute; inset: 0; fill: none; stroke: var(--line); stroke-width: 3px; }
 .resume-orbit circle:last-child { stroke: var(--green); }
-.resume-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; font-size: 11px; color: var(--muted); }
+.resume-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; font-size: 12px; color: var(--muted); }
 .resume-stats b { display: flex; gap: 3px; align-items: center; font-size: 21px; color: #eff3ef; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
-.resume-stats small { font-size: 11px; color: var(--muted); }
+.resume-stats small { font-size: 12px; color: var(--muted); }
 .resume-next { padding: 16px 0; margin-top: 12px; border-top: 1px solid var(--line); }
 .resume-next span, .resume-next b { display: block; }
-.resume-next span { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+.resume-next span { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
 .resume-next b { font-size: 13px; font-weight: 500; }
 .resume-card > button { width: 100%; }
 .resume-dock { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; border: 1px solid #81d3ad44; background: var(--card); border-radius: 12px; margin-bottom: 16px; overflow: hidden; position: relative; text-align: start; }
 .resume-dock > span:nth-child(2) { flex: 1; }
 .resume-dock small, .resume-dock b, .resume-dock em { display: block; }
-.resume-dock small { font-size: 9px; color: var(--green); }
+.resume-dock small { font-size: 12px; color: var(--green); }
 .resume-dock b { margin: 5px 0; font-weight: 500; }
-.resume-dock em { font-size: 11px; color: var(--muted); font-style: normal; }
+.resume-dock em { font-size: 12px; color: var(--muted); font-style: normal; }
 .resume-dock > i { position: absolute; bottom: 0; inset-inline-start: 0; height: 2px; background: var(--green); }
 .resume-play { color: var(--green); }
 
@@ -34,7 +34,7 @@ button, input, select, textarea { font-family: var(--font-sans); }
 .card { background: var(--card); border-color: var(--line); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
 .primary { background: var(--primary); color: var(--on-primary); border-color: transparent; border-radius: var(--radius-control); }
 .secondary { border-color: var(--line); color: var(--text); border-radius: var(--radius-control); }
-.small, .text-link, .icon-btn, .tabs button, .feed-actions button { min-height: 44px; }
+.small, .text-link, .icon-btn, .feed-actions button { min-height: 44px; }
 .icon-btn { min-width: 44px; }
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: .9; }
 input:focus, select:focus, textarea:focus { border-color: var(--green); }
@@ -46,7 +46,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); }
 .desktop-sidebar nav button.active { background: var(--accent-soft); color: var(--green); border-color: var(--accent-line); }
 .calendar button.active { background: var(--accent-soft); border-color: var(--accent-line); box-shadow: none; }
 .calendar button.active b, .calendar button.active small { color: var(--text); }
-.tabs button.active { color: var(--text); border-bottom-color: var(--green); }
 .ring-track, .chart .gridline { stroke: var(--line); }
 .chart text { fill: var(--muted); }
 .chart circle { stroke: var(--card); }
@@ -89,7 +88,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); }
 .device-readings > div { display: flex; gap: var(--space-2); align-items: center; color: var(--green); }
 .device-readings small, .device-readings b { display: block; }
 .device-readings small { color: var(--muted); }
-.device-readings b { color: var(--text); font-size: 19px; font-variant-numeric: tabular-nums; }
+.device-readings b { color: var(--text); font-size: 20px; font-variant-numeric: tabular-nums; }
 .connected-devices > .text-link { display: flex; justify-content: flex-start; margin-top: var(--space-3); text-align: start; }
 .privacy-footnote { display: flex; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--line); margin-top: var(--space-3); color: var(--muted); }
 .privacy-footnote p { font-size: var(--text-xs); }
@@ -128,15 +127,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); }
 }
 @media (max-width: 760px) {
   .card { border-radius: var(--radius-card); padding: var(--space-5); }
-  .bottom-nav span { font-size: 10px; }
+  .bottom-nav span { font-size: 12px; }
   .bottom-nav button { min-height: 48px; }
   .simple-row b { font-size: 13px; }
   .simple-row small, .attention-row small, .card > p { font-size: 12px; }
   .attention-row b { font-size: 13px; }
-  .welcome-top > .eyebrow { font-size: 9px; }
-  .welcome-top button { font-size: 11px; min-height: 44px; }
+  .welcome-top > .eyebrow { font-size: 11px; }
+  .welcome-top button { font-size: 12px; min-height: 44px; }
   .welcome-benefits p, .welcome-footnote { font-size: 12px; }
-  .ring small { font-size: 10px; }
+  .ring small { font-size: 12px; }
   .resume-stats { gap: 6px; }
   .resume-stats b { font-size: 20px; }
   input:not([type="checkbox"]):not([type="range"]), select, textarea { font-size: 16px; }

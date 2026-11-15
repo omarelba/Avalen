@@ -8,6 +8,7 @@ import { useEditDraft, EditSaveBar } from '../edit-draft.jsx';
 import { nutritionDay, targetValues } from '../nutrition-model.js';
 import { dayKey, decision } from '../store.js';
 import { Button, Field, Modal, Notice, SectionHead, Tabs } from '../ui.jsx';
+import { ReasonChips } from './ReasonChips.jsx';
 import { WEEKDAYS, nutritionFromTemplate, nutritionTemplateFrom, weekNutrition, weekdayIndex } from '../plan-week.js';
 import { t } from '../i18n.js';
 import { MealFoodsEditor } from '../MealFoods.jsx';
@@ -138,6 +139,7 @@ export function NutritionEditor({ client }) {
         }}
       >
         <WeekNutritionFields form={form} setForm={(next) => { setForm(next); setSaved(false); }} dayIndex={dayIndex} setDayIndex={setDayIndex} />
+        <ReasonChips value={reason} onPick={setReason} />
         <Field label={t('Why are you making this change?')}>
           <textarea required value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>

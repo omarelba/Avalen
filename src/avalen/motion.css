@@ -265,7 +265,7 @@ input[type="radio"] {
   stroke: currentColor;
   stroke-width: 3;
   stroke-linecap: round;
-  transition: stroke-dashoffset 250ms linear;
+  transition: stroke-dashoffset var(--motion-panel) linear;
 }
 .rest-orbit .rest-track {
   stroke: var(--line);
@@ -473,10 +473,10 @@ input[type="radio"] {
 .chart-cursor,
 .chart svg > circle:last-of-type {
   transition:
-    x1 110ms ease-out,
-    x2 110ms ease-out,
-    cx 110ms ease-out,
-    cy 110ms ease-out;
+    x1 var(--motion-press) ease-out,
+    x2 var(--motion-press) ease-out,
+    cx var(--motion-press) ease-out,
+    cy var(--motion-press) ease-out;
 }
 /* Native snapshots are progressive enhancement. No root crossfade over controls. */
 :root {
@@ -509,17 +509,17 @@ input[type="radio"] {
 }
 /* swap: the same screen changes in place. */
 ::view-transition-old(avalen-content) {
-  animation: route-out 90ms linear both;
+  animation: route-out var(--motion-press) linear both;
 }
 ::view-transition-new(avalen-content) {
-  animation: route-in 220ms var(--ease-precise) 60ms both;
+  animation: route-in var(--motion-state) var(--ease-precise) 60ms both;
 }
 /* tab: fade through, nudged the way the tab bar travels. */
 [data-route-kind="tab"]::view-transition-old(avalen-content) {
-  animation: route-tab-out 110ms ease-in both;
+  animation: route-tab-out var(--motion-press) ease-in both;
 }
 [data-route-kind="tab"]::view-transition-new(avalen-content) {
-  animation: route-tab-in 260ms var(--ease-precise) 70ms both;
+  animation: route-tab-in var(--motion-panel) var(--ease-precise) 70ms both;
 }
 [data-route-kind="tab"][data-route-direction="back"]::view-transition-old(avalen-content) {
   animation-name: route-tab-out-back;
@@ -529,10 +529,10 @@ input[type="radio"] {
 }
 /* expand: a session grows out of its photo, so the page around it only fades through. */
 [data-route-kind="expand"]::view-transition-old(avalen-content) {
-  animation: route-out 120ms linear both;
+  animation: route-out var(--motion-press) linear both;
 }
 [data-route-kind="expand"]::view-transition-new(avalen-content) {
-  animation: route-in 300ms var(--ease-precise) 90ms both;
+  animation: route-in var(--motion-panel) var(--ease-precise) 90ms both;
 }
 /* push: a deeper page slides in over the one beneath; Back pulls it away. */
 [data-route-kind="push"]::view-transition-old(avalen-content) {
@@ -563,16 +563,16 @@ input[type="radio"] {
   mix-blend-mode: normal;
 }
 ::view-transition-old(avalen-navigation):only-child {
-  animation: route-bar-down 200ms ease-in both;
+  animation: route-bar-down var(--motion-state) ease-in both;
 }
 ::view-transition-new(avalen-navigation):only-child {
-  animation: route-bar-down 300ms var(--ease-precise) 120ms reverse both;
+  animation: route-bar-down var(--motion-panel) var(--ease-precise) 120ms reverse both;
 }
 ::view-transition-old(avalen-header):only-child {
-  animation: route-out 140ms linear both;
+  animation: route-out var(--motion-state) linear both;
 }
 ::view-transition-new(avalen-header):only-child {
-  animation: route-in 260ms var(--ease-precise) 120ms both;
+  animation: route-in var(--motion-panel) var(--ease-precise) 120ms both;
 }
 ::view-transition-old(session-hero),
 ::view-transition-new(session-hero) {
@@ -688,7 +688,7 @@ input[type="radio"] {
 .weekly-complete {
   display: block;
   padding-top: 10px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--green);
 }
 .goal-earned .weekly-complete {

@@ -1,4 +1,8 @@
 :root {
+  /* Type scale (DR-04). Text is never below 11 px (uppercase labels, tags, avatars) or 12 px (other text);
+     16 px is kept for form fields so iOS doesn't zoom in when one is focused. Headlines above 20 px are unchanged. */
+  --text-11: 11px; --text-12: 12px; --text-13: 13px; --text-15: 15px; --text-16: 16px;
+  --text-17: 17px; --text-20: 20px; --text-24: 24px; --text-32: 32px; --text-44: 44px;
   --macro-calories: #e2c49b;
   --macro-protein: #a5cabb;
   --macro-carbs: #a8b9d5;

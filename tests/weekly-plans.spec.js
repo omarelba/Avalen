@@ -195,3 +195,87 @@ test("a coach builds a weekly nutrition template in Programs and loads it for a 
   await expect(page.getByText("Saved “Nour's cut” to your nutrition templates.")).toBeVisible();
   expect((await state(page)).nutritionTemplates.map((n) => n.name)).toEqual(["Cut · 4 days", "Nour's cut"]);
 });
+
+test("a coach adds a client with a training and a nutrition template in one step", async ({ page }) => {
+  await demoCoach(page);
+  await nav(page, "Clients").click();
+  await page.locator(".client-card").filter({ hasText: "Jordan Williams" }).click();
+  await page.getByRole("tab", { name: "Plan", exact: true }).click();
+  await page.getByRole("button", { name: "Save as template", exact: true }).click();
+  await expect(page.getByText("Saved to your templates.", { exact: false })).toBeVisible();
+  await nav(page, "Programs").click();
+  await page.getByRole("tab", { name: "Nutrition", exact: true }).click();
+  await page.getByRole("button", { name: "Create nutrition template" }).first().click();
+  const editor = page.getByRole("dialog", { name: "Nutrition template" });
+  await editor.getByLabel("Template name").fill("Cut · 4 days");
+  await editor.getByLabel("Calories", { exact: true }).fill("2300");
+  await editor.getByLabel("Protein (g)").fill("170");
+  await editor.getByLabel("Carbs (g)").fill("230");
+  await editor.getByLabel("Fat (g)").fill("70");
+  await editor.getByRole("button", { name: "Copy this day to every day" }).click();
+  await editor.getByRole("button", { name: "Save template", exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  const { templates } = await state(page);
+
+  await nav(page, "Clients").click();
+  await page.getByRole("button", { name: "Add client", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Add a client" });
+  await dialog.getByLabel("Full name").fill("Nour Adel");
+  await dialog.getByLabel("Email").fill("nour@example.com");
+  await expect(dialog.getByLabel("Training programme")).toHaveValue("");
+  await dialog.getByLabel("Training programme").selectOption({ label: `${templates[0].name} · ${templates[0].weeks} weeks` });
+  await dialog.getByLabel("Nutrition plan").selectOption({ label: "Cut · 4 days" });
+  await dialog.getByRole("button", { name: "Create client", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Weekly schedule" })).toBeVisible();
+
+  const nour = (await state(page)).clients.find((c) => c.name === "Nour Adel");
+  expect(nour.program.name).toBe(templates[0].name);
+  expect(nour.program.id).not.toBe(templates[0].id);
+  expect(nour.schedule.length).toBeGreaterThan(0);
+  expect(nour.nutrition.days.map((d) => d.kcal)).toEqual([2300, 2300, 2300, 2300, 2300, 2300, 2300]);
+  const timeline = (await state(page)).timeline.filter((e) => e.clientId === nour.id).map((e) => e.title);
+  expect(timeline).toEqual(expect.arrayContaining(["Programme assigned", "Nutrition adjusted"]));
+});
+
+test("reason chips fill the reason for a plan change, which stays editable", async ({ page }) => {
+  await newClientAsCoach(page);
+  await page.getByRole("tab", { name: "Nutrition", exact: true }).click();
+  await page.getByLabel("Calories", { exact: true }).fill("2400");
+  await page.getByLabel("Protein (g)").fill("160");
+  await page.getByLabel("Carbs (g)").fill("260");
+  await page.getByLabel("Fat (g)").fill("70");
+  await page.getByRole("button", { name: "Copy this day to every day" }).click();
+  const chips = page.getByRole("group", { name: "Common reasons" });
+  await chips.getByRole("button", { name: "First plan" }).click();
+  await expect(chips.getByRole("button", { name: "First plan" })).toHaveAttribute("aria-pressed", "true");
+  const reason = page.getByLabel("Why are you making this change?");
+  await expect(reason).toHaveValue("First plan");
+  await reason.fill("First plan after the intake call");
+  await expect(chips.getByRole("button", { name: "First plan" })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Save nutrition plan" }).click();
+  await expect(page.getByText("Updated. The client’s targets now reflect this plan.")).toBeVisible();
+  const nour = (await state(page)).clients.find((c) => c.name === "Nour Adel");
+  const entry = (await state(page)).timeline.find((e) => e.clientId === nour.id && e.title === "Nutrition adjusted");
+  expect(entry.detail).toContain("First plan after the intake call");
+});
+
+test("the programme builder loads 24 exercises first; Show all and search list the whole library", async ({ page }) => {
+  await demoCoach(page);
+  await nav(page, "Clients").click();
+  await page.locator(".client-card").filter({ hasText: "Jordan Williams" }).click();
+  await page.getByRole("tab", { name: "Plan", exact: true }).click();
+  await page.getByRole("button", { name: /Edit programme/ }).first().click();
+  const builder = page.getByRole("dialog", { name: "Programme builder" });
+  const items = builder.locator(".exercise-library > button:not(.exercise-library-more)");
+  await expect(items).toHaveCount(24);
+  const total = Number((await builder.locator(".exercise-library-count").innerText()).match(/\d+/)[0]);
+  expect(total).toBeGreaterThan(24);
+  await builder.getByRole("button", { name: `Show all ${total} exercises` }).click();
+  await expect(items).toHaveCount(total);
+  await builder.getByLabel("Search exercise library").fill("squat");
+  await expect(builder.getByRole("button", { name: /Show all/ })).toHaveCount(0);
+  expect(await items.count()).toBe(Number((await builder.locator(".exercise-library-count").innerText()).match(/\d+/)[0]));
+  await builder.getByLabel("Search exercise library").fill("");
+  await expect(items).toHaveCount(24);
+});

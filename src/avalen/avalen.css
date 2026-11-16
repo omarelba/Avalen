@@ -132,6 +132,13 @@ select:focus {
 .search:focus-within {
   border-color: var(--text);
 }
+/* A search box shows focus on its outer border; the field inside never draws its own. */
+.search input,
+.search input:focus,
+.search input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
 input::placeholder,
 textarea::placeholder {
   color: var(--muted);

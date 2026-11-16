@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Wearables are switched off in the pilot (src/avalen/features.js); these tests cover them switched on.
+test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem('avalen:feature:wearables', 'on')); });
+
 const nav = (page, name) => page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name, exact: true });
 const state = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('avalen.workspace.v1')));
 async function demo(page, role = 'client') {

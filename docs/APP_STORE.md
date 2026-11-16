@@ -27,17 +27,25 @@ Already set in the project: app icon and launch screen, camera / photo library /
 messages in English and Arabic, iPhone only, portrait, and the export-compliance answer (no
 non-exempt encryption).
 
+## Pilot: wearables on hold
+Wearables are switched off everywhere (web and iPhone) during the pilot: no connections,
+readings, home widgets, coach cards or wording, and no wearable requests. The server code,
+migrations and any stored readings stay in place. Build with `VITE_AVALEN_WEARABLES=on` to
+bring them back (then also restore the wearable sections of `public/privacy.html` and
+`public/support.html` from git history). In development, setting localStorage
+`avalen:feature:wearables` to `on` turns them on; the wearable browser tests do this.
+
 ## Pilot build: what the iPhone app hides
 The iPhone app (detected by Capacitor's `window.Capacitor.isNativePlatform()`) hides what
 it doesn't support yet; the code stays in place (`src/avalen/features.js`):
-- wearable connections and automatic sync (Apple Health, Health Connect, WHOOP, Google
-  Health) and the demo's sample readings from them. Readings entered by hand still work.
+- with wearables switched on: wearable connections and automatic sync (Apple Health,
+  Health Connect, WHOOP, Google Health) and the demo's sample readings from them.
+  Readings entered by hand still work.
 - online payment with Paymob (the coach's Paymob card and the client's checkout).
   Payment requests and payments recorded by the coach still work.
 
 Switch either back on for a later build with `VITE_AVALEN_WEARABLE_SYNC=on` or
-`VITE_AVALEN_ONLINE_PAYMENTS=on`. The web app is unchanged. `tests/ios-pilot.spec.js`
-checks both states.
+`VITE_AVALEN_ONLINE_PAYMENTS=on`. `tests/ios-pilot.spec.js` checks both states.
 
 ## Native HTTP and record comparison
 In the iPhone app, sign-in, saves and actions go through Capacitor's native HTTP layer,

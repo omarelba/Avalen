@@ -91,6 +91,7 @@ export default {
   'Sign out': 'تسجيل الخروج',
   'Delete account': 'حذف الحساب',
   'This permanently deletes your coaching workspace: your programmes, notes, client payments, messages, documents and your Paymob connection. Clients with their own account keep it, with their workouts, food logs, measurements, check-ins and photos, and can join another coach.': 'يحذف هذا مساحة عمل التدريب نهائيًا: برامجك وملاحظاتك ومدفوعات المتدرّبين والرسائل والمستندات واتصالك بـ Paymob. يحتفظ المتدرّبون الذين لديهم حساب خاص بحساباتهم مع تمارينهم وسجلات طعامهم وقياساتهم ومتابعاتهم وصورهم، ويمكنهم الانضمام إلى مدرّب آخر.',
+  'This permanently deletes your account and everything about you: workouts, check-ins, messages, photos, voice notes and measurements. Your coach keeps payment records without your personal details.': 'سيحذف هذا حسابك نهائيًا وكل ما يتعلق بك: التمارين والمتابعات والرسائل والصور والرسائل الصوتية والقياسات. يحتفظ مدرّبك بسجلات الدفع دون بياناتك الشخصية.',
   'This permanently deletes your account and everything about you: workouts, check-ins, messages, photos, voice notes, measurements and wearable readings. Connected wearables are disconnected. Your coach keeps payment records without your personal details.': 'سيحذف هذا حسابك نهائيًا وكل ما يتعلق بك: التمارين والمتابعات والرسائل والصور والرسائل الصوتية والقياسات وقراءات الأجهزة الذكية، مع فصل الأجهزة المتصلة. يحتفظ مدرّبك بسجلات الدفع دون بياناتك الشخصية.',
   'This can’t be undone.': 'لا يمكن التراجع عن هذا.',
   'Your password': 'كلمة مرورك',

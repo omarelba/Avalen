@@ -55,3 +55,17 @@ export function consistencyState({ workout, scheduled, foodLogged, nutrition, ha
 export function latestMeasurement(records, field) {
   return chartRecords(records, field).at(-1) || null;
 }
+
+// A coach's own food: a name, a serving, and its calories, protein, carbs and fat.
+// Returns "" when it's fine, otherwise what to fix.
+export function customFoodError(food) {
+  if (!food || typeof food !== "object") return "Enter the food's details.";
+  const name = typeof food.name === "string" ? food.name.trim() : "";
+  if (!name || name.length > 80) return "Give the food a name of up to 80 characters.";
+  if (typeof food.portion !== "string" || !food.portion.trim() || food.portion.length > 60) return "Describe the serving in up to 60 characters, for example 1 cup · 150 g.";
+  for (const [key, label, max] of [["kcal", "Calories", 5000], ["p", "Protein", 500], ["c", "Carbs", 1000], ["f", "Fat", 500]]) {
+    const value = food[key];
+    if (value === "" || value == null || !Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > max) return `${label} must be a number from 0 to ${max.toLocaleString("en-US")}.`;
+  }
+  return "";
+}

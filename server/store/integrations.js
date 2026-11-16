@@ -66,6 +66,18 @@ export function integrationStore(db) {
       db.all("SELECT provider, MAX(synced_at) AS at FROM wearable_days WHERE workspace_id=$1 AND client_id=$2 GROUP BY provider", [ws, client]),
     deleteDays: (ws, client, provider) => db.run("DELETE FROM wearable_days WHERE workspace_id=$1 AND client_id=$2 AND provider=$3", [ws, client, provider]),
 
+    // Synced workouts: one row per provider workout; a repeated sync updates it.
+    saveWorkout: (ws, client, provider, workout, at) =>
+      db.run(
+        `INSERT INTO wearable_workouts(workspace_id, client_id, provider, external_id, date, started_at, ended_at, sport, data, synced_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT(workspace_id, client_id, provider, external_id) DO UPDATE SET date=excluded.date, started_at=excluded.started_at, ended_at=excluded.ended_at, sport=excluded.sport, data=excluded.data, synced_at=excluded.synced_at`,
+        [ws, client, provider, workout.externalId, workout.date, workout.startedAt, workout.endedAt, workout.sport, JSON.stringify(workout.data), at],
+      ),
+    workoutsSince: async (ws, client, from) =>
+      (await db.all("SELECT provider, external_id, date, started_at, ended_at, sport, data, synced_at FROM wearable_workouts WHERE workspace_id=$1 AND client_id=$2 AND date>=$3 ORDER BY started_at DESC", [ws, client, from]))
+        .map((row) => ({ provider: row.provider, externalId: row.external_id, date: row.date, startedAt: row.started_at, endedAt: row.ended_at, sport: row.sport, data: JSON.parse(row.data), syncedAt: row.synced_at })),
+    deleteWorkouts: (ws, client, provider) => db.run("DELETE FROM wearable_workouts WHERE workspace_id=$1 AND client_id=$2 AND provider=$3", [ws, client, provider]),
+
     saveState: (stateHash, ws, client, provider, expires) =>
       db.run("INSERT INTO wearable_states(state, workspace_id, client_id, provider, expires) VALUES($1, $2, $3, $4, $5)", [stateHash, ws, client, provider, expires]),
     // Returns the sign-in state once and removes it, so a callback cannot be replayed.
@@ -80,7 +92,7 @@ export function integrationStore(db) {
     // keepReadings: the connection goes but the client's readings stay with their history.
     async deleteAll(ws, clientId, { keepReadings = false } = {}) {
       const { where, args } = scope(ws, clientId);
-      for (const table of keepReadings ? ["wearable_links", "wearable_states"] : ["wearable_links", "wearable_days", "wearable_states"]) await db.run(`DELETE FROM ${table} WHERE ${where}`, args);
+      for (const table of keepReadings ? ["wearable_links", "wearable_states"] : ["wearable_links", "wearable_days", "wearable_workouts", "wearable_states"]) await db.run(`DELETE FROM ${table} WHERE ${where}`, args);
     },
   };
 

@@ -26,6 +26,7 @@ export function foundations(data) {
   // The coach's reusable plans: training programmes and weekly nutrition.
   data.templates ||= [];
   data.nutritionTemplates ||= [];
+  data.customFoods ||= [];
   data.ecosystemVersion = 1;
   return data;
 }

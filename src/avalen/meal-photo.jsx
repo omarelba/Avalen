@@ -10,6 +10,7 @@ import { Button, Field, Media, Modal } from './ui.jsx';
 
 import { t } from './i18n.js';
 import { itemsSummary, portionLabel } from './portions.js';
+import { foodLoggedHaptic } from './food-haptics.js';
 const mealNow = () => new Date().getHours() < 11 ? 'Breakfast' : new Date().getHours() < 16 ? 'Lunch' : 'Dinner';
 const nutrients = [['kcal', 'Calories', 'kcal'], ['p', 'Protein', 'g'], ['c', 'Carbs', 'g'], ['f', 'Fat', 'g']];
 
@@ -70,6 +71,7 @@ export function PhotoMealLogger({ date = dayKey(), onClose, onBack, initialMeal 
     saving.current = false;
     setBusy(false);
     if (result?.error) { setError(result.error); return; }
+    foodLoggedHaptic(data, client, entry);
     notify?.(previous ? t('Meal updated') : t('{name} logged', { name: entry.name }), () => update(d => {
       if (previous) recordFood(d, client, previous);
       else d.foodLogs = d.foodLogs.filter(f => f.id !== entry.id);

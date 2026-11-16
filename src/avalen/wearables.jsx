@@ -10,7 +10,7 @@ import {
   cleanMetrics, formatMetric, hrvMethod, latestDay, sampleDays, shareFor, shiftDay, trend, visibleMetrics, wearableFlag,
 } from './wearables-model.js';
 import { formatDate, t } from './i18n.js';
-import { wearableSync } from './features.js';
+import { wearableSync, wearablesEnabled } from './features.js';
 import './wearables.css';
 
 const ICONS = { whoop: HeartPulse, google: Watch, apple: Watch, healthconnect: Smartphone };
@@ -46,7 +46,7 @@ function loadSummary(force = false) {
 }
 export function useWearableSummary() {
   const { data } = useApp();
-  const live = role() === 'coach';
+  const live = role() === 'coach' && wearablesEnabled();
   const [, render] = useState(0);
   useEffect(() => {
     if (!live) return;
@@ -66,6 +66,7 @@ export function useWearableSummary() {
     }
     return out;
   }, [data.clients, data.wearableDays, data.demo]);
+  if (!wearablesEnabled()) return {};
   return connection() ? (live ? summary.value || {} : {}) : local;
 }
 export const wearableFlagFor = (entry) => wearableFlag(entry?.latest, dayKey());

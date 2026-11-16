@@ -19,6 +19,11 @@ export const COACH_WIDGETS = [
   { id: 'insights', label: 'Coaching insights', detail: 'Suggestions from training trends' },
   { id: 'progress', label: 'Client progress', detail: 'Shortcuts to progress views' },
 ];
+// The widgets offered right now: wearable widgets only while wearables are on.
+// Switching wearables back on returns their widgets to their default place.
+// (The client's "Live recovery" is muscle recovery from training, not a wearable.)
+const WEARABLE_WIDGETS = { client: ['wearables'], coach: ['recovery'] };
+export const availableWidgets = (widgets, role, wearables) => (wearables ? widgets : widgets.filter((w) => !WEARABLE_WIDGETS[role].includes(w.id)));
 // Widgets that start hidden; everything else starts visible.
 const HIDDEN_BY_DEFAULT = {};
 const MAX = 40;

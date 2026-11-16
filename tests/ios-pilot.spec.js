@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Wearables are switched off in the pilot (src/avalen/features.js); these tests cover them switched on.
+test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem('avalen:feature:wearables', 'on')); });
+
 // The iPhone app during the pilot hides wearable connections and online payment
 // (src/avalen/features.js). These tests load the app as the iPhone app sees itself:
 // Capacitor defines window.Capacitor.isNativePlatform() before any app code runs.

@@ -60,6 +60,43 @@ export function visibleMetrics(metrics, share) {
 }
 
 // Returns clean metrics, or throws with a readable message. Unknown keys are dropped.
+// A synced workout, checked before it is stored. Values are what the provider reports;
+// `strain` is kept only as that provider's own score (WHOOP), never calculated by Avalen.
+// zoneMinutes: minutes in heart-rate zones 0–5, as the provider reports them.
+export const WORKOUT_FIELDS = {
+  durationMin: { min: 1, max: 1440 },
+  avgHr: { min: 20, max: 250 },
+  maxHr: { min: 20, max: 250 },
+  kcal: { min: 0, max: 20000 },
+  distanceM: { min: 0, max: 1000000 },
+  strain: { min: 0, max: 21 },
+};
+const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+export function cleanWorkout(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Workout is missing.');
+  const externalId = String(input.externalId ?? '').trim();
+  if (!externalId || externalId.length > 200) throw new Error('Workout id is missing.');
+  const sport = String(input.sport ?? '').trim().toLowerCase().slice(0, 60) || 'workout';
+  if (!ISO.test(String(input.startedAt)) || !ISO.test(String(input.endedAt))) throw new Error('Workout times must be ISO 8601.');
+  if (Date.parse(input.endedAt) <= Date.parse(input.startedAt) || Date.parse(input.endedAt) - Date.parse(input.startedAt) > 24 * 3600e3) throw new Error('Workout end must be after its start, within a day.');
+  if (!isDay(input.date)) throw new Error('Workout date must be YYYY-MM-DD.');
+  const data = {};
+  for (const [key, spec] of Object.entries(WORKOUT_FIELDS)) {
+    const raw = input[key];
+    if (raw === undefined || raw === null || raw === '') continue;
+    const value = Number(raw);
+    if (!Number.isFinite(value) || value < spec.min || value > spec.max) throw new Error(`Workout ${key} must be between ${spec.min} and ${spec.max}.`);
+    data[key] = Math.round(value * 100) / 100;
+  }
+  if (input.zoneMinutes != null) {
+    const zones = input.zoneMinutes;
+    if (!Array.isArray(zones) || zones.length !== 6 || zones.some((m) => !Number.isFinite(Number(m)) || Number(m) < 0 || Number(m) > 1440)) throw new Error('Workout zoneMinutes must be six minute counts.');
+    data.zoneMinutes = zones.map((m) => Math.round(Number(m) * 10) / 10);
+  }
+  data.durationMin ??= Math.round((Date.parse(input.endedAt) - Date.parse(input.startedAt)) / 60000);
+  return { externalId, sport, startedAt: String(input.startedAt), endedAt: String(input.endedAt), date: input.date, data };
+}
+
 export function cleanMetrics(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error(t('Readings are missing.'));
   const out = {};

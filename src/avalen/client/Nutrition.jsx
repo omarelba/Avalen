@@ -9,12 +9,14 @@ import { nutritionPlanFor } from '../plan-week.js';
 import { dayKey, offsetDay, round, saveFile, shortDate, sum, uid } from '../store.js';
 import { CoachMealPlan } from '../nutrition-home.jsx';
 import { PhotoMealLogger } from '../meal-photo.jsx';
-import { ALL_FOODS, searchFoods } from '../food-library.js';
+import { ALL_FOODS, customLibrary, rankFoods } from '../food-library.js';
 import { BarcodeScan } from '../BarcodeScan.jsx';
 import { Hydration } from '../ReferenceMotion.jsx';
 import { Button, Empty, Field, IconButton, Media, Meter, Modal, Notice, Ring, SectionHead, Stat, Tabs } from '../ui.jsx';
 import { language, t } from '../i18n.js';
 import { portionLabel } from '../portions.js';
+import { foodLoggedHaptic } from '../food-haptics.js';
+import { warningHaptic } from '../haptics.js';
 
 function DailyUpdates({ date, foods }) {
   const { data, client } = useApp();
@@ -205,6 +207,7 @@ export function Nutrition() {
                 });
                 setRemoving(false);
                 if (result?.error) { setRemovalError(result.error); return; }
+                warningHaptic();
                 notify?.(t('Entry removed'), () => update(d => recordFood(d,client,detail)));
                 setDetail(null);
               }}
@@ -239,13 +242,15 @@ export function FoodLogger({ date, onClose, initialTab = 'Search' }) {
     meal: "Lunch",
   });
   const [scanning, setScanning] = useState(false);
-  const foods = searchFoods(
+  // The library and the coach's custom foods, searched together.
+  const library = [...ALL_FOODS, ...customLibrary(data.customFoods)];
+  const foods = rankFoods(
     tab === "Favourites"
-      ? ALL_FOODS.filter((f) => data.favorites.includes(f.name))
-      : ALL_FOODS,
+      ? library.filter((f) => data.favorites.includes(f.name))
+      : library,
     query,
   );
-  const reviewFood = ({ ar, tags, source, ...f }) => setReview(f);
+  const reviewFood = ({ ar, tags, source, id, custom, ...f }) => setReview(f);
   async function upload(e) {
     const file = e.target.files?.[0];
     if (!file || uploadLock.current) return;
@@ -280,6 +285,7 @@ export function FoodLogger({ date, onClose, initialTab = 'Search' }) {
     const result = await update(d => recordFood(d,client,entry));
     setBusy(false);
     if (result?.error) { setError(result.error); return; }
+    foodLoggedHaptic(data, client, entry);
     notify?.(t('Food added to diary'), () => update(d => { d.foodLogs = d.foodLogs.filter(f => f.id !== entry.id); }));
     onClose();
   }
@@ -316,11 +322,11 @@ export function FoodLogger({ date, onClose, initialTab = 'Search' }) {
           {tab === 'Search' && !query && recent.length > 0 && <div className="recent-foods"><span className="eyebrow">{t('LOG AGAIN')}</span>{recent.map(f => <button key={f.id} onClick={() => setReview(f)}><span><b>{t(f.name)}</b><small>{t('{kcal} kcal · {portion}', { kcal: f.kcal, portion: f.portion })}</small></span><Plus size={18}/></button>)}</div>}
           <div className="food-search-results">
             {foods.map((f) => (
-              <div className="food-option" key={f.name}>
+              <div className="food-option" key={f.custom ? `custom-${f.id}` : f.name}>
                 <button
                   onClick={() => reviewFood(f)}
                 >
-                  <b>{t(f.name)}{f.ar && language() === 'en' && <span className="food-ar" lang="ar" dir="rtl">{f.ar}</span>}</b>
+                  <b>{f.custom ? f.name : t(f.name)}{f.ar && language() === 'en' && <span className="food-ar" lang="ar" dir="rtl">{f.ar}</span>}{f.custom && <em className="custom-food-tag">{t('From your coach')}</em>}</b>
                   <small>{t('{portion} · {kcal} kcal', { portion: portionLabel(f.portion), kcal: f.kcal })}</small>
                 </button>
                 <IconButton

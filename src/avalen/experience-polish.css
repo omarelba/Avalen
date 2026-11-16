@@ -21,7 +21,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .page .simple-row { min-height:68px; }
 .simple-row > span > small { font-size:12px; line-height:1.5; }
 .simple-row > span > b { font-size:15px; line-height:1.5; }
-:is(.card,.simple-row,.exercise-row,.editorial-session,.theme-option,.review-queue-item) button:active:not(:disabled),button:is(.simple-row,.exercise-row,.editorial-session,.theme-option,.client-card):active:not(:disabled) { transform:scale(.995); }
+:is(.card,.simple-row,.exercise-row,.editorial-session,.theme-option,.review-queue-item) button:active:not(:disabled),button:is(.simple-row,.exercise-row,.editorial-session,.theme-option,.client-card):active:not(:disabled) { transform:scale(.985); }
 :is(.icon-btn,.set-adjust button):active:not(:disabled) { transform:scale(.95); }
 /* Work first; programme commentary and schedule adjustments follow. */
 .page-plan .program-title { margin-bottom:16px; }

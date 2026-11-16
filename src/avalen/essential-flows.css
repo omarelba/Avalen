@@ -266,3 +266,23 @@ input[type="datetime-local"]::-webkit-date-and-time-value, input[type="month"]::
 /* A section header whose button would wrap: the button moves under the title instead. */
 .ecosystem-stack > .section-head { flex-wrap: wrap; row-gap: 12px; }
 .ecosystem-stack > .section-head > :not(h2) { flex-shrink: 0; }
+/* Steppers are held down to repeat: no text selection or iOS callout on a long press. */
+.set-adjust button { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+/* The finish confetti sits above the result, never catching taps. */
+.confetti-burst { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
+/* Coach custom foods (meal editor and Programs → Nutrition). */
+.custom-food-form { display: grid; gap: 4px; margin: 6px 0 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-inset); }
+.custom-food-tag { margin-inline-start: 8px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 11px; font-style: normal; font-weight: 500; }
+.custom-food-list { list-style: none; margin: 8px 0 14px; padding: 0; display: grid; }
+.custom-food-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.custom-food-list li > span { display: grid; gap: 2px; min-width: 0; }
+.custom-food-list small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* A custom food in search: one row like the others, with the add button and a delete beside it. */
+.meal-food-result-custom { display: flex; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--line); }
+.meal-food-result-custom:last-child { border-bottom: 0; }
+.meal-food-results .meal-food-result-custom > button { border-bottom: 0; }
+.meal-food-results .meal-food-result-custom > button:first-child { flex: 1; min-width: 0; padding-inline-end: 4px; }
+.meal-food-results .meal-food-result-custom > .custom-food-delete { flex: none; width: 44px; min-height: 48px; padding: 0; justify-content: center; color: var(--muted); }
+.meal-food-result-custom > .template-delete-confirm, .meal-food-result-custom > .error { flex-basis: 100%; justify-content: flex-end; padding: 0 12px 10px; }
+.meal-food-results .template-delete-confirm button { border-bottom: 0; min-height: 44px; padding: 0; }
+.custom-food-tag { white-space: nowrap; }

@@ -1,6 +1,6 @@
 import { cleanLayout } from "../src/avalen/home-layout.js";
 import { zonedDay, dateKey, validTimezone } from "../src/avalen/ecosystem/time.js";
-import { programError } from "../src/avalen/validation.js";
+import { customFoodError, programError } from "../src/avalen/validation.js";
 import { checkinPlanError } from "../src/avalen/checkin-model.js";
 import { policyError } from "../src/avalen/ecosystem/scheduling.js";
 import { equal, foundations } from "../src/avalen/ecosystem/memory.js";
@@ -60,7 +60,8 @@ export function projection(source, user) {
   data.activeClientId = id;
   for (const [key, value] of Object.entries(data)) {
     if (!Array.isArray(value) || key === "clients") continue;
-    if (["library", "posts"].includes(key)) {
+    // Shared with the coach's clients as they are: the exercise library, the coach's custom foods (to log them) and posts.
+    if (["library", "customFoods", "posts"].includes(key)) {
       if (key === "posts")
         data[key] = value.filter((r) => !r.clientId || r.clientId === id);
       continue;
@@ -245,6 +246,13 @@ export function mergeEdit(source, next, user) {
       )
         fail(409, "Archive clients instead of deleting their history.");
       if (key === "checkins") fail(403, "Use the check-in review flow.");
+      if (key === "customFoods") {
+        if (!Array.isArray(next.customFoods)) fail(400, "Custom foods must be a list.");
+        for (const food of next.customFoods) {
+          const issue = customFoodError(food);
+          if (issue) fail(400, issue);
+        }
+      }
       if (key !== "clients" && Array.isArray(next[key])) checkRecordClients(key, next, previous);
       if (key === "clients")
         for (const client of next.clients) {

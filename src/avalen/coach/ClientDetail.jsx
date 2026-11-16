@@ -7,6 +7,7 @@ import { useApp } from '../context.js';
 import { useWorkspaceSave } from '../workspace-save.js';
 import { reviewQueue, reviewAction, dismissFlag } from '../coach-review.js';
 import { useWearableSummary, CoachWearableCard } from '../wearables.jsx';
+import { wearablesEnabled } from '../features.js';
 import { dayKey, decision, metrics, scheduleDay } from '../store.js';
 import { programWeek, scheduleFromWeek } from '../plan-week.js';
 import { Button, Heading, Modal, Stat, Tabs } from '../ui.jsx';
@@ -24,6 +25,7 @@ import { NutritionEditor } from './NutritionEditor.jsx';
 import { BillingEditor } from './BillingEditor.jsx';
 import { Documents } from './Documents.jsx';
 import { ProgramEditor } from './ProgramEditor.jsx';
+import { successHaptic } from '../haptics.js';
 
 function ClientSections({value, onChange}) {
   const secondary = ['Intelligence', 'FormLab', 'Coaching Memory', 'Billing', 'Documents'];
@@ -75,7 +77,7 @@ export function ClientDetail({ client, tab, setTab }) {
           <IntakeCard client={client} />
           <ClientChanges key={client.id} client={client} />
           <RecoveryMap compact coach clientId={client.id} day={trainedToday ? null : scheduleDay(client, dayKey())} onOpen={() => { setProgressTab("Recovery"); setTab("Progress"); }} />
-          <CoachWearableCard key={`wearables-${client.id}`} client={client} onPlan={() => setTab("Plan")} />
+          {wearablesEnabled() && <CoachWearableCard key={`wearables-${client.id}`} client={client} onPlan={() => setTab("Plan")} />}
           <div className="three-stats">
             <Stat
               label={t('Training')}
@@ -155,6 +157,7 @@ export function ClientDetail({ client, tab, setTab }) {
               );
             });
             if(result?.error)throw new Error(result.error);
+            successHaptic();
             setEdit(false);
           }}
         />

@@ -30,6 +30,7 @@ export const TABLES = [
   ["wearable_links", ["workspace_id", "client_id", "provider"]],
   ["wearable_states", ["state"]],
   ["wearable_days", ["workspace_id", "client_id", "provider", "date"]],
+  ["wearable_workouts", ["workspace_id", "client_id", "provider", "external_id"]],
   ["wearable_events", ["id"]],
 ];
 

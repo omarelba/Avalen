@@ -7,7 +7,8 @@ import { Intelligence } from '../ecosystem/intelligence.jsx';
 import { useApp } from '../context.js';
 import { metrics } from '../store.js';
 import { ClientRecoveryWidget, useWearableSummary } from '../wearables.jsx';
-import { COACH_WIDGETS, resolveLayout } from '../home-layout.js';
+import { COACH_WIDGETS, availableWidgets, resolveLayout } from '../home-layout.js';
+import { wearablesEnabled } from '../features.js';
 import { CustomiseHome, EditHomeButton } from '../HomeEditor.jsx';
 import { Avatar, Button, Empty, Heading, SectionHead, Tabs } from '../ui.jsx';
 import { t } from '../i18n.js';
@@ -49,9 +50,9 @@ export function Dashboard() {
   };
   return <>
     <Heading title={(new Date().getHours() < 12 ? t('Good morning, {name}.', { name: data.coach.name.split(' ')[0] }) : t('Good afternoon, {name}.', { name: data.coach.name.split(' ')[0] }))} subtitle={t('Review, respond, and get your clients moving.')}/>
-    {resolveLayout(data.coach.homeLayout, COACH_WIDGETS, 'coach').filter((w) => w.visible).map((w) => <React.Fragment key={w.id}>{homeWidgets[w.id]}</React.Fragment>)}
+    {resolveLayout(data.coach.homeLayout, availableWidgets(COACH_WIDGETS, 'coach', wearablesEnabled()), 'coach').filter((w) => w.visible).map((w) => <React.Fragment key={w.id}>{homeWidgets[w.id]}</React.Fragment>)}
     <EditHomeButton onClick={() => setEditingHome(true)}/>
-    {editingHome && <CustomiseHome widgets={COACH_WIDGETS} saved={data.coach.homeLayout} role="coach" onClose={() => setEditingHome(false)} write={(d, layout) => { if (layout) d.coach.homeLayout = layout; else delete d.coach.homeLayout; }}/>}
+    {editingHome && <CustomiseHome widgets={availableWidgets(COACH_WIDGETS, 'coach', wearablesEnabled())} saved={data.coach.homeLayout} role="coach" onClose={() => setEditingHome(false)} write={(d, layout) => { if (layout) d.coach.homeLayout = layout; else delete d.coach.homeLayout; }}/>}
   </>;
 }
 

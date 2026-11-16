@@ -19,6 +19,7 @@ import recovery from "../assets/share-recovery-v2.jpg";
 import night from "../assets/share-night-gym-v2.jpg";
 import mountain from "../assets/avalen-mountains.jpg";
 import { t, locale } from './i18n.js';
+import { tickHaptic } from './haptics.js';
 export const IMAGES = [rack, weights, track, recovery, night];
 export { mountain };
 export const BACKGROUNDS = [
@@ -107,7 +108,7 @@ export function Tabs({ items, value, onChange, label = "Sections" }) {
             tabIndex={value === id || (index === 0 && !items.some(item => (Array.isArray(item) ? item[0] : item) === value)) ? 0 : -1}
             aria-selected={value === id}
             className={value === id ? "active" : ""}
-            onClick={() => onChange(id)}
+            onClick={() => { if (id !== value) tickHaptic(); onChange(id); }}
             onKeyDown={(event) => {
               if (
                 !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)

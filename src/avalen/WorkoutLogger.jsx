@@ -13,21 +13,35 @@ import { libraryWithCatalogue, planExercise, regionOf } from './exercise-catalog
 import { useEditDraft } from './edit-draft.jsx';
 
 import { t } from './i18n.js';
-import { setLoggedHaptic, workoutFinishedHaptic } from './haptics.js';
+import { setLoggedHaptic, tickHaptic, warningHaptic, workoutFinishedHaptic } from './haptics.js';
+import { useHoldRepeat } from './hold-repeat.js';
+// A weight or reps stepper button: tap for one step, hold to repeat.
+function HoldButton({ label, disabled, onStep, children }) {
+  const hold = useHoldRepeat(onStep, disabled);
+  return <button type="button" aria-label={label} disabled={disabled} {...hold}>{children}</button>;
+}
 function SetEditor({initial, onChange, onSubmit, number, total, previous, editing, cancel, duration = false, busy = false, justLogged = false, pips = [], ready = false}) {
   const [values, setValues] = useState(initial);
+  // The latest values, so a held stepper keeps counting from where it is (not from the render it started in).
+  const current = useRef(values); current.current = values;
   const inputs = useRef({});
   const validWeight = values.weight !== '' && Number.isFinite(Number(values.weight)) && Number(values.weight) >= 0 && Number(values.weight) <= 1000;
   const validReps = values.reps !== '' && Number.isInteger(Number(values.reps)) && Number(values.reps) >= 1 && Number(values.reps) <= (duration ? 3600 : 500);
   const valid = validWeight && validReps;
   function change(key, value) {
-    const next = {...values, [key]: value};
+    const next = {...current.current, [key]: value};
+    current.current = next;
     setValues(next);
     onChange?.(next);
   }
+  // One step; returns false at the limit so a held button stops repeating.
   function step(key, direction, amount, min, max) {
-    change(key, round(Math.min(max, Math.max(min, Number(values[key]) + direction * amount))));
+    const now = Number(current.current[key]), next = round(Math.min(max, Math.max(min, now + direction * amount)));
+    if (next === now) return false;
+    change(key, next);
+    tickHaptic();
     animate(inputs.current[key], [{transform: `translateY(${direction * -12}px)`, opacity: .2}, {transform: 'translateY(0)', opacity: 1}], {duration: 220});
+    return true;
   }
   return <form className={`set-editor focused-set-editor ${ready ? 'is-ready' : ''}`} aria-label={editing ? t('Edit set {number}', { number }) : t('Current set')} onSubmit={e => {
     e.preventDefault();
@@ -37,7 +51,7 @@ function SetEditor({initial, onChange, onSubmit, number, total, previous, editin
     <div className="set-controls">
       {[['weight', 'Weight (kg)', 'Weight', 'kg', validWeight, 2.5, 0, 1000], ['reps', duration ? 'Duration (seconds)' : 'Reps', duration ? 'Duration' : 'Reps', duration ? 'sec' : 'reps', validReps, duration ? 5 : 1, 1, duration ? 3600 : 500]].map(([key, label, text, unit, isValid, amount, min, max]) => <div className="set-control" key={key}>
         <label><span>{text}<small>{unit}</small></span><input ref={node => { inputs.current[key] = node; }} aria-label={label} type="number" inputMode={key === 'weight' ? 'decimal' : 'numeric'} enterKeyHint={key === 'weight' ? 'next' : 'done'} disabled={busy} min={min} max={max} step={key === 'weight' ? 'any' : 1} value={values[key]} aria-invalid={!isValid} aria-describedby={!valid ? 'set-input-error' : undefined} onFocus={e => e.target.select()} onKeyDown={event => {if(event.key === 'Enter' && key === 'weight'){event.preventDefault();event.currentTarget.form.querySelectorAll('.set-control input')[1]?.focus();}}} onChange={e => change(key, e.target.value)}/></label>
-        <div className="set-adjust"><button type="button" aria-label={t('Decrease {label}', { label })} disabled={busy || Number(values[key]) <= min} onClick={() => step(key, -1, amount, min, max)}><Minus size={18}/></button><span>{amount} {unit === 'reps' && amount === 1 ? 'rep' : unit}</span><button type="button" aria-label={t('Increase {label}', { label })} disabled={busy || Number(values[key]) >= max} onClick={() => step(key, 1, amount, min, max)}><Plus size={18}/></button></div>
+        <div className="set-adjust"><HoldButton label={t('Decrease {label}', { label })} disabled={busy || Number(values[key]) <= min} onStep={() => step(key, -1, amount, min, max)}><Minus size={18}/></HoldButton><span>{amount} {unit === 'reps' && amount === 1 ? 'rep' : unit}</span><HoldButton label={t('Increase {label}', { label })} disabled={busy || Number(values[key]) >= max} onStep={() => step(key, 1, amount, min, max)}><Plus size={18}/></HoldButton></div>
       </div>)}
     </div>
     {!valid && <p id="set-input-error" className="set-input-error" role="alert">{!validWeight ? t('Enter a weight from 0 to 1,000 kg.') : duration ? t('Enter whole seconds from 1 to 3,600.') : t('Enter a whole number of reps from 1 to 500.')}</p>}
@@ -219,6 +233,6 @@ export function Workout({onClose, onFinish}) {
       if (result?.error) {setError(result.error); finishLock.current=false; setFinishing(false); return;}
       workoutFinishedHaptic();
       clearWorkoutInput(draft.id); noteDraft.clear({note:''}); onFinish(draft.id);
-    }}>{finishing ? t('Saving workout…') : t('Finish & see results')}</Button><Button secondary disabled={finishing} onClick={() => setConfirm(false)}>{t('Keep going')}</Button>{!draft.sets.some(s => !s.skipped) && <Button secondary disabled={finishing} onClick={async () => {const result = await update(d => {delete d.drafts[client.id];}); if (result?.error) {setError(result.error); return;} clearWorkoutInput(draft.id); noteDraft.clear({note:''}); onClose();}}>{t('Discard empty workout')}</Button>}</div>{error && <p className="error" role="alert">{error}</p>}</Modal>}
+    }}>{finishing ? t('Saving workout…') : t('Finish & see results')}</Button><Button secondary disabled={finishing} onClick={() => setConfirm(false)}>{t('Keep going')}</Button>{!draft.sets.some(s => !s.skipped) && <Button secondary disabled={finishing} onClick={async () => {const result = await update(d => {delete d.drafts[client.id];}); if (result?.error) {setError(result.error); return;} warningHaptic(); clearWorkoutInput(draft.id); noteDraft.clear({note:''}); onClose();}}>{t('Discard empty workout')}</Button>}</div>{error && <p className="error" role="alert">{error}</p>}</Modal>}
   </Modal>;
 }

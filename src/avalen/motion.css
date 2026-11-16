@@ -28,7 +28,7 @@ summary {
 }
 button:active:not(:disabled),
 summary:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 :is(
     .icon-btn,
@@ -509,17 +509,21 @@ input[type="radio"] {
 }
 /* swap: the same screen changes in place. */
 ::view-transition-old(avalen-content) {
-  animation: route-out var(--motion-press) linear both;
+  animation: route-out 80ms linear both;
 }
 ::view-transition-new(avalen-content) {
-  animation: route-in var(--motion-state) var(--ease-precise) 60ms both;
+  animation: route-in 160ms var(--ease-precise) 40ms both;
 }
 /* tab: fade through, nudged the way the tab bar travels. */
+/* About 200 ms in all, so switching tabs feels immediate (it was about 350 ms). */
 [data-route-kind="tab"]::view-transition-old(avalen-content) {
-  animation: route-tab-out var(--motion-press) ease-in both;
+  animation: route-tab-out 80ms ease-in both;
 }
 [data-route-kind="tab"]::view-transition-new(avalen-content) {
-  animation: route-tab-in var(--motion-panel) var(--ease-precise) 70ms both;
+  animation: route-tab-in 160ms var(--ease-precise) 40ms both;
+}
+[data-route-kind="tab"]::view-transition-group(*) {
+  animation-duration: 200ms;
 }
 [data-route-kind="tab"][data-route-direction="back"]::view-transition-old(avalen-content) {
   animation-name: route-tab-out-back;

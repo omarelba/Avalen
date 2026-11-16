@@ -67,7 +67,7 @@ const AR = {
   g: 'غ', ml: 'مل', cup: 'كوب', cups: 'أكواب', tbsp: 'ملعقة كبيرة', tsp: 'ملعقة صغيرة', egg: 'بيضة', eggs: 'بيض',
   banana: 'موزة', fillet: 'فيليه', piece: 'قطعة', pieces: 'قطع', loaf: 'رغيف', roll: 'رغيف', plate: 'طبق', bowl: 'سلطانية',
   slice: 'شريحة', slices: 'شرائح', sandwich: 'ساندوتش', can: 'علبة', drained: 'مصفّاة', dates: 'تمرات', glass: 'كوب',
-  serving: 'حصة', servings: 'حصص', fillets: 'فيليه', bananas: 'موز', potatoes: 'حبات بطاطس', loaves: 'أرغفة', rolls: 'أرغفة', plates: 'أطباق', bowls: 'سلطانيات', sandwiches: 'ساندوتشات', cans: 'علب', glasses: 'أكواب', avocados: 'ثمرات أفوكادو', sugar: 'سكر', skewers: 'أسياخ', planned: 'مخطّطة', medium: 'متوسطة', large: 'كبيرة', small: 'صغيرة', half: 'نصف', potato: 'حبة بطاطس', avocado: 'ثمرة أفوكادو',
+  serving: 'حصة', servings: 'حصص', scoop: 'مغرفة', scoops: 'مغارف', handful: 'حفنة', handfuls: 'حفنات', bar: 'لوح', bars: 'ألواح', bag: 'كيس', bags: 'أكياس', skewer: 'سيخ', skewers: 'أسياخ', fillets: 'فيليه', bananas: 'موز', potatoes: 'حبات بطاطس', loaves: 'أرغفة', rolls: 'أرغفة', plates: 'أطباق', bowls: 'سلطانيات', sandwiches: 'ساندوتشات', cans: 'علب', glasses: 'أكواب', avocados: 'ثمرات أفوكادو', sugar: 'سكر', skewers: 'أسياخ', planned: 'مخطّطة', medium: 'متوسطة', large: 'كبيرة', small: 'صغيرة', half: 'نصف', potato: 'حبة بطاطس', avocado: 'ثمرة أفوكادو',
 };
 export function portionLabel(text) {
   if (text == null || language() === 'en') return text ?? '';

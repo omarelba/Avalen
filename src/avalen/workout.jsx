@@ -23,6 +23,7 @@ import {
 } from "./ui.jsx";
 
 import { t } from './i18n.js';
+import { Confetti } from './Confetti.jsx';
 export function makeDraft(data, client, day, date) {
   return {
     id: uid(),
@@ -205,6 +206,7 @@ export function ShareWorkout({ session, onClose, celebrate = false }) {
           onChange={setWeeks}
         />
       )}
+      {celebrate && !story && <Confetti burst={session.prs?.length ? 120 : 70} />}
       {celebrate && !story && <div className="workout-earned" role="status"><span className="earned-mark"><Check size={26}/></span><div><span className="eyebrow">{t('SESSION SAVED')}</span><h2>{t('You put in the work.')}</h2><p>{session.prs?.length ? t('{count} personal records · {list}', { count: session.prs.length, list: session.prs.map((name) => t(name)).join(t(', ')) }) : t('{length} working sets. One step forward.', { length: sets.filter(s => !s.skipped).length })}</p></div></div>}
       <div
         className={`share-poster ${celebrate ? 'earned-poster' : ''}`}

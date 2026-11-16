@@ -8,7 +8,21 @@
 // VITE_AVALEN_ONLINE_PAYMENTS=on. The web app is unchanged.
 
 // Capacitor defines window.Capacitor inside the iPhone app; a browser never has it.
-export const inNativeApp = () => Boolean(globalThis.Capacitor?.isNativePlatform?.());
+// Read once and remembered: loading a Capacitor plugin later (haptics) replaces the global
+// in a browser, and the answer must not change during a session.
+let native;
+export const inNativeApp = () => (native ??= Boolean(globalThis.Capacitor?.isNativePlatform?.()));
+
+// Wearables are on hold during the pilot. While off, the app shows no wearable
+// connections, readings, widgets or wording anywhere (web and iPhone), and makes no
+// wearable requests. The server code and any stored readings stay as they are.
+// Build with VITE_AVALEN_WEARABLES=on to bring them back. In development only (the
+// browser tests), localStorage "avalen:feature:wearables" = "on" turns them on too.
+export const wearablesEnabled = () => import.meta.env?.VITE_AVALEN_WEARABLES === "on" || devOverride("wearables");
+function devOverride(name) {
+  if (!import.meta.env?.DEV) return false;
+  try { return globalThis.localStorage?.getItem(`avalen:feature:${name}`) === "on"; } catch { return false; }
+}
 
 export const wearableSync = () => !inNativeApp() || import.meta.env?.VITE_AVALEN_WEARABLE_SYNC === "on";
 export const onlinePayments = () => !inNativeApp() || import.meta.env?.VITE_AVALEN_ONLINE_PAYMENTS === "on";

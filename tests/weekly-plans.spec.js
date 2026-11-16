@@ -326,3 +326,54 @@ test("tapping a field or the page shows no green outline, keyboard focus still d
   const top = await page.getByRole("dialog", { name: "Programme builder" }).evaluate((e) => e.getBoundingClientRect().top);
   expect(top).toBeGreaterThanOrEqual(16);
 });
+
+test("a coach's custom food joins food search for the coach and their clients, and can be deleted from search", async ({ page }) => {
+  await demoCoach(page);
+  await nav(page, "Clients").click();
+  await page.locator(".client-card").filter({ hasText: "Jordan Williams" }).click();
+  await page.getByRole("tab", { name: "Nutrition", exact: true }).click();
+  const search = page.getByLabel("Add a food to this meal").first();
+  await search.fill("Protein pancakes");
+  await page.getByRole("button", { name: "Create “Protein pancakes” as a custom food" }).click();
+  const form = page.getByRole("group", { name: "New custom food" });
+  await expect(form.getByLabel("Food name")).toHaveValue("Protein pancakes");
+  await form.getByLabel("Serving").fill("2 pieces · 120 g");
+  await form.getByLabel("Calories").fill("320");
+  await form.getByLabel("Protein (g)").fill("28");
+  await form.getByLabel("Carbs (g)").fill("30");
+  await form.getByRole("button", { name: "Save food" }).click();
+  await expect(form.getByRole("alert")).toContainText("Fat");
+  await form.getByLabel("Fat (g)").fill("9");
+  await form.getByRole("button", { name: "Save food" }).click();
+  await expect(form).toHaveCount(0);
+  expect((await state(page)).customFoods).toEqual([expect.objectContaining({ name: "Protein pancakes", portion: "2 pieces · 120 g", kcal: 320, p: 28, c: 30, f: 9 })]);
+  await expect(page.locator(".meal-foods-editor").first()).toContainText("Protein pancakes");
+
+  // In search it sits among the library foods that match, labelled Custom.
+  await search.fill("protein");
+  const results = page.locator(".meal-food-results").first();
+  await expect(results).toContainText("Whey protein");
+  await expect(results.locator(".meal-food-result-custom")).toContainText("Protein pancakes");
+  await expect(results.locator(".meal-food-result-custom")).toContainText("Custom");
+  await expect(page.getByRole("region", { name: "Your custom foods" })).toHaveCount(0);
+
+  // The client finds it in their own food search.
+  await page.getByLabel("Workspace role").selectOption("client");
+  await nav(page, "Nutrition").click();
+  await page.getByRole("button", { name: "Log food" }).click();
+  await page.getByRole("searchbox").fill("pancakes");
+  await expect(page.locator(".food-option").filter({ hasText: "Protein pancakes" })).toContainText("From your coach");
+  await page.keyboard.press("Escape");
+
+  // The coach deletes it from search.
+  await page.getByLabel("Workspace role").selectOption("coach");
+  await nav(page, "Clients").click();
+  await page.locator(".client-card").filter({ hasText: "Jordan Williams" }).click();
+  await page.getByRole("tab", { name: "Nutrition", exact: true }).click();
+  await page.getByLabel("Add a food to this meal").first().fill("pancakes");
+  await page.getByRole("button", { name: "Delete custom food Protein pancakes" }).click();
+  await expect(page.getByText("Delete this food?")).toBeVisible();
+  await page.locator(".meal-food-result-custom").getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(page.locator(".meal-food-result-custom")).toHaveCount(0);
+  expect((await state(page)).customFoods).toEqual([]);
+});

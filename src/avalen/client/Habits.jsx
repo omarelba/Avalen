@@ -6,6 +6,7 @@ import { dayKey } from '../store.js';
 import { Hydration } from '../ReferenceMotion.jsx';
 import { Meter, SectionHead } from '../ui.jsx';
 import { t } from '../i18n.js';
+import { lightHaptic } from '../haptics.js';
 
 export function Habits() {
   const { data, client, update } = useApp();
@@ -31,7 +32,7 @@ export function Habits() {
         d.habitLogs.push(row);
       }
       row.values[h.id] = Number(Number(value).toFixed(3));
-    });
+    }).then((result) => { if (!result?.error) lightHaptic(); });
   }
   return (
     <>

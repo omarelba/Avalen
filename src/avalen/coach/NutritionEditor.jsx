@@ -13,6 +13,7 @@ import { WEEKDAYS, nutritionFromTemplate, nutritionTemplateFrom, weekNutrition, 
 import { t } from '../i18n.js';
 import { MealFoodsEditor } from '../MealFoods.jsx';
 import { dayTotals, itemsTotals } from '../portions.js';
+import { successHaptic } from '../haptics.js';
 
 // The day as planned, from every meal, beside the targets the coach set above.
 function DayTotals({ meals, targets, structured }) {
@@ -136,6 +137,7 @@ export function NutritionEditor({ client }) {
           setSaving(false);if(result?.error){setSaveError(result.error);return;}
           draft.clear({ plan: structuredClone(plan), reason: '' });
           setSaved(true);
+          successHaptic();
         }}
       >
         <WeekNutritionFields form={form} setForm={(next) => { setForm(next); setSaved(false); }} dayIndex={dayIndex} setDayIndex={setDayIndex} />

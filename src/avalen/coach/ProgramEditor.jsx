@@ -13,6 +13,7 @@ import { WEEKDAYS, defaultWeek } from '../plan-week.js';
 import { matchesSearch, t } from '../i18n.js';
 import { REGIONS, groupLabel, libraryWithCatalogue, planExercise, regionOf } from '../exercise-catalogue.js';
 import { ReasonChips } from './ReasonChips.jsx';
+import { warningHaptic } from '../haptics.js';
 
 // How many exercises the builder's library shows before "Show all" (DR-15).
 const LIBRARY_PREVIEW = 24;
@@ -136,6 +137,7 @@ export function ProgramEditor({ program, onClose, onSave, draftKey = `template.$
                 change((d) => { d.days = d.days.filter((x) => x.id !== id); if (Array.isArray(d.week)) d.week = d.week.map((x) => (x === id ? null : x)); });
                 setDayIndex(Math.max(0, Math.min(dayIndex, draft.days.length - 2)));
                 setConfirmRemove(null);
+                warningHaptic();
               }}>{t('Remove')}</button>
               <button type="button" className="text-link" onClick={() => setConfirmRemove(null)}>{t('Keep')}</button></span>
           : <button type="button" className="text-link red" onClick={() => setConfirmRemove(day.id)}>{t('Remove workout')}</button>)}

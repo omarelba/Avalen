@@ -307,7 +307,10 @@ export function wearableService({ store, root, fetchImpl = globalThis.fetch, pub
         await links.deleteLink(user.workspace_id, user.client_id, provider);
       }
     } else if (!UPLOAD_PROVIDERS.includes(provider)) fail(404, 'This connection isn’t available.');
-    if (!keepHistory) await links.deleteDays(user.workspace_id, user.client_id, provider);
+    if (!keepHistory) {
+      await links.deleteDays(user.workspace_id, user.client_id, provider);
+      await links.deleteWorkouts(user.workspace_id, user.client_id, provider);
+    }
     return { ok: true };
   }
 

@@ -80,6 +80,7 @@ test('weight-only updates preserve the latest known body measurements with their
 });
 
 test('food search precedes recents and device settings remain available without dominating profile', async ({page}) => {
+ await page.addInitScript(()=>localStorage.setItem('avalen:feature:wearables','on')); // wearables are off in the pilot
  await demo(page); await page.getByRole('button',{name:'Log food',exact:true}).click();await page.getByRole('dialog').waitFor();await page.evaluate(()=>Promise.all(document.getAnimations().map(a=>a.finished.catch(()=>{}))));const search=await page.getByLabel('Search food library').boundingBox(),recent=await page.locator('.recent-foods').boundingBox();expect(search.y).toBeLessThan(recent.y);
  await page.getByRole('button',{name:'Close dialog',exact:true}).click();await nav(page,'More').click(); await expect(page.getByRole('heading',{name:'Appearance',exact:true})).toBeVisible();
  // Devices stay folded away until asked for, so they never push the profile down.

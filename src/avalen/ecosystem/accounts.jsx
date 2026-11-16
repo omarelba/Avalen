@@ -1,4 +1,5 @@
 import { migrateDeviceMedia, collectDeviceMedia } from "./migration.js";
+import { wearablesEnabled } from '../features.js';
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Download, Languages, LogOut, UserMinus } from "lucide-react";
 import { download } from "../store.js";
@@ -397,7 +398,9 @@ export function DeleteAccount({ role }) {
       <p>
         {coach
           ? t('This permanently deletes your coaching workspace: your programmes, notes, client payments, messages, documents and your Paymob connection. Clients with their own account keep it, with their workouts, food logs, measurements, check-ins and photos, and can join another coach.')
-          : t('This permanently deletes your account and everything about you: workouts, check-ins, messages, photos, voice notes, measurements and wearable readings. Connected wearables are disconnected. Your coach keeps payment records without your personal details.')}
+          : wearablesEnabled()
+            ? t('This permanently deletes your account and everything about you: workouts, check-ins, messages, photos, voice notes, measurements and wearable readings. Connected wearables are disconnected. Your coach keeps payment records without your personal details.')
+            : t('This permanently deletes your account and everything about you: workouts, check-ins, messages, photos, voice notes and measurements. Your coach keeps payment records without your personal details.')}
       </p>
       <p className="muted">{t('This can’t be undone.')}</p>
       <form onSubmit={remove}>

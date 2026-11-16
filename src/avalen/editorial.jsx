@@ -13,7 +13,8 @@ import { ResumeWorkout } from './resume.jsx';
 import {CoachNutritionHome} from './nutrition-home.jsx';
 import {RecoveryMap} from './RecoveryMap.jsx';
 import {ClientWearableHome} from './wearables.jsx';
-import {CLIENT_WIDGETS, resolveLayout} from './home-layout.js';
+import {CLIENT_WIDGETS, availableWidgets, resolveLayout} from './home-layout.js';
+import {wearablesEnabled} from './features.js';
 import {formatDate, matchesSearch, t} from './i18n.js';
 import {groupLabel} from './exercise-catalogue.js';
 import {CustomiseHome, EditHomeButton} from './HomeEditor.jsx';
@@ -135,9 +136,9 @@ export function EditorialHome() {
     <PaymentDueNotice/>
     {intakeDue && <button className="intake-prompt" onClick={openIntake}><span><b>{t('Tell {name} about you', {name: data.coach.name.split(' ')[0]})}</b><small>{t('8 quick questions, about a minute')}</small></span><ArrowRight size={18}/></button>}
     {data.drafts[client.id] && <div className="editorial-resume home-priority"><ResumeWorkout compact/></div>}
-    {resolveLayout(client.homeLayout, CLIENT_WIDGETS).filter((w) => w.visible).map((w) => <React.Fragment key={w.id}>{homeWidgets[w.id]}</React.Fragment>)}
+    {resolveLayout(client.homeLayout, availableWidgets(CLIENT_WIDGETS, 'client', wearablesEnabled())).filter((w) => w.visible).map((w) => <React.Fragment key={w.id}>{homeWidgets[w.id]}</React.Fragment>)}
     <EditHomeButton onClick={() => setEditingHome(true)}/>
-    {editingHome && <CustomiseHome widgets={CLIENT_WIDGETS} saved={client.homeLayout} role="client" onClose={() => setEditingHome(false)} write={(d, layout) => { const c = d.clients.find((x) => x.id === client.id); if (layout) c.homeLayout = layout; else delete c.homeLayout; }}/>}
+    {editingHome && <CustomiseHome widgets={availableWidgets(CLIENT_WIDGETS, 'client', wearablesEnabled())} saved={client.homeLayout} role="client" onClose={() => setEditingHome(false)} write={(d, layout) => { const c = d.clients.find((x) => x.id === client.id); if (layout) c.homeLayout = layout; else delete c.homeLayout; }}/>}
     {mealEntry === 'photo' && <PhotoMealLogger onClose={()=>setMealEntry(null)}/>}
     {mealEntry === 'food' && <FoodLogger date={today} onClose={()=>setMealEntry(null)}/>}
     {plannedMeal && <PhotoMealLogger initialMeal={plannedMeal} requirePhoto={false} onClose={() => setPlannedMeal(null)}/>}

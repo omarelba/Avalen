@@ -82,6 +82,7 @@ const Programs = coachPage('Programs');
 const Inbox = coachPage('Inbox');
 const Business = coachPage('Business');
 import { Workout, ShareWorkout, makeDraft } from "./workout.jsx";
+import { tickHaptic, warningHaptic } from './haptics.js';
 import "./tokens.css";
 import "./avalen.css";
 import "./refinements.css";
@@ -128,6 +129,13 @@ function savedRole() {
 }
 function App() {
   useEffect(watchViewport, []);
+  // A warning haptic when a form can't be submitted because a field is invalid (once per attempt).
+  useEffect(() => {
+    let last = 0;
+    const onInvalid = () => { const now = Date.now(); if (now - last > 600) { last = now; warningHaptic(); } };
+    document.addEventListener('invalid', onInvalid, true);
+    return () => document.removeEventListener('invalid', onInvalid, true);
+  }, []);
   const { data, update, storageError, recovery } = useWorkspace();
   const bottomNav = useRef(null);
   const [route,visit] = useAppRoute(savedRole());
@@ -416,7 +424,7 @@ function App() {
                   aria-description={id === (role === "coach" ? "inbox" : "you") && unread > 0 ? `${unread} unread messages` : undefined}
                   aria-current={screen === id || (role === "client" && id === "you" && screen === "coach") ? "page" : undefined}
                   className={screen === id || (role === "client" && id === "you" && screen === "coach") ? "active" : ""}
-                  onClick={() => navigate(id)}
+                  onClick={() => { if (screen !== id) tickHaptic(); navigate(id); }}
                 >
                   <Icon size={21} strokeWidth={screen === id ? 2.4 : 1.5} />
                   <span>{t(label)}</span>

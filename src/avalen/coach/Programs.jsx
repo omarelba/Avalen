@@ -13,6 +13,7 @@ import { Button, Empty, Field, Heading, IconButton, Modal, Notice, SectionHead, 
 import { NutritionTemplateEditor } from './NutritionEditor.jsx';
 import { t } from '../i18n.js';
 import { ProgramEditor } from './ProgramEditor.jsx';
+import { warningHaptic } from '../haptics.js';
 
 const blankNutritionTemplate = () => ({ id: uid(), name: '', mode: 'Flexible', days: WEEKDAYS.map(() => ({ kcal: '', p: '', c: '', f: '', meals: [] })) });
 
@@ -45,7 +46,7 @@ export function Programs() {
     [clientId, setClientId] = useState(data.clients[0]?.id || '');
   const programs = data.templates || [];
   const [kind, setKind] = useState('Training'), [confirming, setConfirming] = useState(null);
-  const remove = async (list, id) => { if (await save((d) => { d[list] = (d[list] || []).filter((x) => x.id !== id); })) setConfirming(null); };
+  const remove = async (list, id) => { if (await save((d) => { d[list] = (d[list] || []).filter((x) => x.id !== id); })) { warningHaptic(); setConfirming(null); } };
   const deleteControl = (list, id) => confirming === id
     ? <span className="template-delete-confirm"><span>{t('Delete this template?')}</span><button className="text-link red" disabled={saving} onClick={() => remove(list, id)}>{t('Delete')}</button><button className="text-link" disabled={saving} onClick={() => setConfirming(null)}>{t('Keep')}</button></span>
     : <button className="text-link" onClick={() => setConfirming(id)}>{t('Delete')}</button>;

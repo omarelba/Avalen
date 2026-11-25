@@ -1,6 +1,7 @@
 // Signing up, signing in, and account-level actions (coach codes, account deletion).
 // This is the only module that creates or destroys a user's session.
 import { coachOnly, fail } from "../permissions.js";
+import { PASSWORD_MAX, PASSWORD_MIN } from "../../src/avalen/validation.js";
 import { formatCode } from "../coach-codes.js";
 import { createWorkspace, newClient } from "../../src/avalen/seed.js";
 import { blankPlan } from "../../src/avalen/plan-week.js";
@@ -83,8 +84,8 @@ export function createOpenAccountRoutes(ctx) {
       limit(req, "password-reset");
       const input = await body(req, 4096);
       if (!validEmail(input.email) || typeof input.code !== "string" || !/^\d{6}$/.test(input.code.trim())) fail(400, badCode);
-      if (typeof input.password !== "string" || input.password.length < 12 || input.password.length > 200)
-        fail(400, "Choose a password with 12–200 characters.");
+      if (typeof input.password !== "string" || input.password.length < PASSWORD_MIN || input.password.length > PASSWORD_MAX)
+        fail(400, "Choose a password with 8–200 characters.");
       const user = await store.users.byEmail(input.email.trim().toLowerCase());
       const now = Date.now();
       const reset = user && (await store.passwordResets.current(user.id, now));

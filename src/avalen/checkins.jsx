@@ -1,8 +1,8 @@
 import { VoiceRecording,AudioPlayer } from './ecosystem/recording.jsx';
 import { checkinSummary } from './ecosystem/checkin-service.js';
 import { zonedDay, clientTimezone } from './ecosystem/time.js';
-import React, { useRef, useState } from 'react';
-import { ArrowRight, CalendarDays, Check, Plus, Settings, Trash2, Upload } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Plus, Settings, Trash2, Upload } from 'lucide-react';
 import { useApp } from './context.js';
 import { offsetDay, shortDate, uid, decision, saveFile } from './store.js';
 import { Button, Empty, Field, LineChart, Media, Modal, Notice, SectionHead, Tabs } from './ui.jsx';
@@ -10,7 +10,8 @@ import { useEditDraft, EditSaveBar } from './edit-draft.jsx';
 import { answerFor, hasAnswer, checkinPlanFor, checkinSchedule, checkinPlanError, checkinError, schemaFor, saveCheckin, checkinTrend, trendFields } from './checkin-model.js';
 
 import { t } from './i18n.js';
-import { successHaptic } from './haptics.js';
+import { lightHaptic, successHaptic, tickHaptic } from './haptics.js';
+import { WheelPicker } from './WheelPicker.jsx';
 function CheckinSettings({ client, onClose }) {
   const { update, notify, data } = useApp();
   const editor = useEditDraft(`checkin-plan.${client.id}`, checkinPlanFor(client));
@@ -59,18 +60,29 @@ function CheckinTrends({ client, rows }) {
   </section>;
 }
 
-function CheckinForm({ row, client, onClose }) {
+// The client's check-in, one question at a time: measurements on a scroll wheel (typed
+// values work too), ratings as large options, then their update and Send. The questions,
+// answers and saving are the coach's check-in plan as before; only the way through changed.
+const NUMBER_REST = { weight: 75, waist: 85, bodyFat: 20, chest: 100, hips: 100, sleepHours: 7 };
+function CheckinForm({ row, client, onClose, onSent }) {
   const { data,update,notify,runAction }=useApp();
   const editor=useEditDraft(`checkin-entry.${client.id}.${row.date}.${row.submittedAt || 'new'}.${JSON.stringify(row.schema)}`, row);
   const form=editor.value, setForm=editor.setValue;
   const [error,setError]=useState(''),[uploading,setUploading]=useState(false),[voiceBusy,setVoiceBusy]=useState(false);
-  const lock=useRef(false),submitted=useRef(false);
-  const requiredFields=form.schema.filter(field=>field.required);
-  const requiredAnswered=requiredFields.filter(field=>hasAnswer(form.answers[field.id])).length;
+  const [index,setIndex]=useState(0),[direction,setDirection]=useState(1);
+  const lock=useRef(false),submitted=useRef(false),advance=useRef(null);
   const mergedNote=form.schema.find(f=>f.id==='note' && f.builtin && f.label==='Anything else for your coach?');
   const setAnswer=(id,value)=>setForm(f=>({...f,answers:{...f.answers,[id]:value}}));
   // Photos are always optional. When the coach hasn't asked for them, they sit with the update.
   const photoField=form.schema.find(f=>f.type==='photos'), extraPhotos=photoField?[]:(form.answers.photos || []);
+  const fields=form.schema.filter(f=>!mergedNote || f.id!==mergedNote.id).sort((a,b)=>Number(b.required)-Number(a.required) || Number(b.type==='number')-Number(a.type==='number'));
+  const steps=[...fields.map(field=>({ key:field.id, field })), { key:'update' }];
+  const step=steps[Math.min(index,steps.length-1)], last=index>=steps.length-1;
+  const stepIssue=step.field?checkinError([step.field],form.answers):'';
+  const answered=step.field?hasAnswer(form.answers[step.field.id]):true;
+  useEffect(()=>()=>clearTimeout(advance.current),[]);
+  function go(next){ clearTimeout(advance.current); setError(''); setDirection(next>index?1:-1); setIndex(Math.max(0,Math.min(steps.length-1,next))); }
+  function proceed(){ if(stepIssue){setError(stepIssue);return;} lightHaptic(); go(index+1); }
   async function upload(e,field) {
     const input=e.currentTarget,files=[...input.files || []];if(!files.length || lock.current)return;
     if(files.length+(form.answers[field.id]?.length || 0)>4){setError(t('Choose up to four progress photos.'));input.value='';return;}
@@ -78,38 +90,83 @@ function CheckinForm({ row, client, onClose }) {
     try{const photos=[];for(const file of files)photos.push(await saveFile(file,{clientId:client.id}));setForm(f=>({...f,answers:{...f.answers,[field.id]:[...(f.answers[field.id] || []),...photos]}}));}catch(e){setError(e.message);}finally{lock.current=false;setUploading(false);input.value='';}
   }
   async function send(e) {
-    e.preventDefault();if(lock.current || submitted.current)return;if(voiceBusy){setError(t('Finish saving your recording before sending.'));return;}
-    const issue=checkinError(form.schema,form.answers);if(issue){setError(issue);return;}
+    e.preventDefault();if(!last){proceed();return;}if(lock.current || submitted.current)return;if(voiceBusy){setError(t('Finish saving your recording before sending.'));return;}
+    const issue=checkinError(form.schema,form.answers);if(issue){setError(issue);const at=steps.findIndex(s=>s.field && checkinError([s.field],form.answers));if(at>=0)go(at);return;}
     submitted.current=true;setUploading(true);setError('');
-    try{await runAction('checkin.submit',client.id,{...form,transcript:form.audio?.transcript ?? form.transcript});editor.clear(row);notify?.(t('Check-in sent to your coach'));onClose();}catch(e){submitted.current=false;setError(e.message);}finally{setUploading(false);}
+    try{await runAction('checkin.submit',client.id,{...form,transcript:form.audio?.transcript ?? form.transcript});editor.clear(row);successHaptic();onSent?.();onClose();}catch(e){submitted.current=false;setError(e.message);}finally{setUploading(false);}
   }
-  return <Modal title={t('Your check-in')} className="checkin-form" canClose={!uploading && !voiceBusy} onClose={onClose}>
-    <form onSubmit={send}><fieldset className="checkin-answers" aria-label={t('Check-in answers')} disabled={uploading}><p className="muted">{t('{shortDate} · A quick update and your coach’s requested measurements. Required fields are marked.', { shortDate: shortDate(form.date) })}</p>
-      <div className="checkin-form-progress" role="status"><span className="checkin-progress-dot" aria-hidden="true"/>{requiredFields.length ? t('{requiredAnswered} of {length} required fields filled', { requiredAnswered, length: requiredFields.length }) : t('No required fields')}<span>{editor.dirty ? t('Draft saved on this device') : t('Measurements first. Your update comes next.')}</span></div>
-      {form.schema.filter(f=>!mergedNote || f.id!==mergedNote.id).sort((a,b)=>Number(b.required)-Number(a.required) || Number(b.type==='number')-Number(a.type==='number')).map(f=>{
-        const value=form.answers[f.id] ?? '';
-        const previous=data.checkins.filter(r=>r.clientId===client.id && r.date<form.date).sort((a,b)=>b.date.localeCompare(a.date)).map(r=>answerFor(r,f)).find(hasAnswer);
-        return <div className="checkin-answer-field" key={f.id}>
-          {f.required && <span className="checkin-field-required">{t('Required')}</span>}
-          {f.type==='number'?<><Field label={`${t(f.label)}${f.unit?` (${t(f.unit)})`:''}`} type="number" min={f.min ?? 0} max={f.max ?? 100000} step="any" inputMode="decimal" required={Boolean(f.required)} value={value} placeholder={t('Enter your reading')} onChange={e=>setAnswer(f.id,e.target.value)}/>{hasAnswer(previous) && <small className="muted">{t('Previous check-in: {previous} {unit}', { previous, unit: f.unit })}</small>}</>:f.type==='rating'?<div className="score-field"><label>{t(f.label)}<small>{['Hunger','Stress'].includes(f.legacyKey)?t('1 = low · 5 = high'):t('1 = low / difficult · 5 = high / great')}</small></label><div role="group" aria-label={f.label}>{[1,2,3,4,5].map(n=><button type="button" key={n} aria-label={`${t(f.label)}: ${n}`} aria-pressed={Number(value)===n} onClick={()=>setAnswer(f.id,value===n?'':n)}>{n}</button>)}</div></div>:f.type==='text'?<Field label={f.label}><textarea required={Boolean(f.required)} maxLength={2000} value={value} onChange={e=>setAnswer(f.id,e.target.value)}/></Field>:<><label className="upload-zone"><Upload size={20}/><b>{t(f.label)}</b><small>{t('Up to 4 photos')}</small><input type="file" accept="image/*" multiple disabled={uploading} aria-label={f.label} onChange={e=>upload(e,f)}/></label><div className="checkin-photos">{(value || []).map(photo=><div key={photo.id}><Media fileId={photo.id} alt={t('Check-in progress photo')}/><button type="button" aria-label={t('Remove {name}', { name: photo.name })} onClick={()=>setAnswer(f.id,value.filter(p=>p.id!==photo.id))}><Trash2 size={15}/></button></div>)}</div></>}
-        </div>;
-      })}
-      <div className="checkin-reflection"><h3>{t('Your update')}</h3>
-      <Field label={mergedNote?.required?t('Your update (required)'):t('Your update (optional)')}><textarea required={Boolean(mergedNote?.required)} value={form.updateText || (mergedNote?form.answers.note:'') || ''} maxLength={2000} placeholder={t('How are you feeling? What should your coach know?')} onChange={e=>setForm(f=>({...f,updateText:e.target.value,answers:mergedNote?{...f.answers,note:e.target.value}:f.answers}))}/></Field>
-      <details className="checkin-voice-disclosure" open={Boolean(form.audio) || undefined}><summary>{t('Add a voice update')}<span>{t('Optional · up to 60 seconds')}</span></summary><VoiceRecording value={form.audio} onBusyChange={setVoiceBusy} clientId={client.id} onChange={audio=>setForm(f=>({...f,audio}))}/></details>
-      {!photoField && <details className="checkin-voice-disclosure checkin-photo-disclosure" open={extraPhotos.length>0 || undefined}><summary>{t('Add progress photos')}<span>{t('Optional · up to 4 photos')}</span></summary><label className="upload-zone"><Upload size={20}/><b>{t('Choose photos')}</b><small>{t('Private to you and your coach')}</small><input type="file" accept="image/*" multiple disabled={uploading} aria-label={t('Add progress photos')} onChange={e=>upload(e,{id:'photos'})}/></label>{extraPhotos.length>0 && <div className="checkin-photos">{extraPhotos.map(photo=><div key={photo.id}><Media fileId={photo.id} alt={t('Check-in progress photo')}/><button type="button" aria-label={t('Remove {name}', { name: photo.name })} onClick={()=>setAnswer('photos',extraPhotos.filter(p=>p.id!==photo.id))}><Trash2 size={15}/></button></div>)}</div>}</details>}</div>
+  const f=step.field, value=f?(form.answers[f.id] ?? ''):'';
+  const previous=f && data.checkins.filter(r=>r.clientId===client.id && r.date<form.date).sort((a,b)=>b.date.localeCompare(a.date)).map(r=>answerFor(r,f)).find(hasAnswer);
+  const label=f?`${t(f.label)}${f.unit?` (${t(f.unit)})`:''}`:'';
+  return <Modal title={t('Your check-in')} className="checkin-form checkin-flow" canClose={!uploading && !voiceBusy} onClose={onClose}>
+    <form onSubmit={send}><fieldset className="checkin-answers" aria-label={t('Check-in answers')} disabled={uploading}>
+      <div className="checkin-flow-top">
+        <div className="checkin-flow-progress" role="progressbar" aria-label={t('Check-in progress')} aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={index+1}><span style={{transform:`scaleX(${(index+1)/steps.length})`}}/></div>
+        <div className="checkin-flow-nav">
+          <button type="button" className="checkin-back" disabled={index===0} onClick={()=>go(index-1)}><ArrowLeft size={16} aria-hidden="true"/>{t('Back')}</button>
+          <small>{t('{value} of {total}', { value: index+1, total: steps.length })}</small>
+          {f && !f.required && !last ? <button type="button" className="checkin-skip" onClick={()=>go(index+1)}>{answered?t('Next'):t('Skip')}</button> : <span className="checkin-skip-space"/>}
+        </div>
+      </div>
+      <div className="checkin-step" key={step.key} data-direction={direction>0?'forward':'back'}>
+        {f ? <>
+          <span className="eyebrow">{f.required?t('REQUIRED'):t('OPTIONAL')}</span>
+          {f.type==='number'?<NumberStep field={f} label={label} value={value} previous={previous} onChange={v=>{setError('');setAnswer(f.id,v);}}/>
+          :f.type==='rating'?<div className="score-field checkin-rating"><h2 id={`q-${f.id}`}>{t(f.label)}</h2><p className="muted">{['Hunger','Stress'].includes(f.legacyKey)?t('1 = low · 5 = high'):t('1 = low / difficult · 5 = high / great')}</p><div role="group" aria-labelledby={`q-${f.id}`}>{[1,2,3,4,5].map(n=><button type="button" key={n} aria-label={`${t(f.label)}: ${n}`} aria-pressed={Number(value)===n} onClick={()=>{const next=Number(value)===n?'':n;setAnswer(f.id,next);tickHaptic();setError('');if(next!=='' && !last){clearTimeout(advance.current);advance.current=setTimeout(()=>go(index+1),360);}}}><b>{n}</b></button>)}</div>{hasAnswer(previous) && <small className="checkin-previous">{t('Previous check-in: {previous} {unit}', { previous, unit: f.unit })}</small>}</div>
+          :f.type==='text'?<><h2 className="checkin-question">{t(f.label)}</h2><Field label={t(f.label)}><textarea required={Boolean(f.required)} maxLength={2000} value={value} placeholder={t('Type your answer')} onChange={e=>setAnswer(f.id,e.target.value)}/></Field></>
+          :<><h2 className="checkin-question">{t(f.label)}</h2><label className="upload-zone"><Upload size={20}/><b>{t('Choose photos')}</b><small>{t('Up to 4 photos')}</small><input type="file" accept="image/*" multiple disabled={uploading} aria-label={f.label} onChange={e=>upload(e,f)}/></label><div className="checkin-photos">{(value || []).map(photo=><div key={photo.id}><Media fileId={photo.id} alt={t('Check-in progress photo')}/><button type="button" aria-label={t('Remove {name}', { name: photo.name })} onClick={()=>setAnswer(f.id,value.filter(p=>p.id!==photo.id))}><Trash2 size={15}/></button></div>)}</div></>}
+        </> : <div className="checkin-reflection"><span className="eyebrow">{t('LAST STEP')}</span><h2 className="checkin-question">{t('Your update')}</h2>
+          <Field label={mergedNote?.required?t('Your update (required)'):t('Your update (optional)')}><textarea required={Boolean(mergedNote?.required)} value={form.updateText || (mergedNote?form.answers.note:'') || ''} maxLength={2000} placeholder={t('How are you feeling? What should your coach know?')} onChange={e=>setForm(f=>({...f,updateText:e.target.value,answers:mergedNote?{...f.answers,note:e.target.value}:f.answers}))}/></Field>
+          <details className="checkin-voice-disclosure" open={Boolean(form.audio) || undefined}><summary>{t('Add a voice update')}<span>{t('Optional · up to 60 seconds')}</span></summary><VoiceRecording value={form.audio} onBusyChange={setVoiceBusy} clientId={client.id} onChange={audio=>setForm(f=>({...f,audio}))}/></details>
+          {!photoField && <details className="checkin-voice-disclosure checkin-photo-disclosure" open={extraPhotos.length>0 || undefined}><summary>{t('Add progress photos')}<span>{t('Optional · up to 4 photos')}</span></summary><label className="upload-zone"><Upload size={20}/><b>{t('Choose photos')}</b><small>{t('Private to you and your coach')}</small><input type="file" accept="image/*" multiple disabled={uploading} aria-label={t('Add progress photos')} onChange={e=>upload(e,{id:'photos'})}/></label>{extraPhotos.length>0 && <div className="checkin-photos">{extraPhotos.map(photo=><div key={photo.id}><Media fileId={photo.id} alt={t('Check-in progress photo')}/><button type="button" aria-label={t('Remove {name}', { name: photo.name })} onClick={()=>setAnswer('photos',extraPhotos.filter(p=>p.id!==photo.id))}><Trash2 size={15}/></button></div>)}</div>}</details>}
+          <p className="fine-print muted">{t('Every')} {client.checkinPlan?.intervalDays || 7} {t('days · set by your coach.')}{editor.dirty ? ` ${t('Draft saved on this device')}` : ''}</p>
+        </div>}
+      </div>
       {editor.error && <p role="alert" className="error">{editor.error}</p>}
       {error && <p role="alert" className="error">{error}</p>}
-      <div className="checkin-submit"><small>{t('Every')} {client.checkinPlan?.intervalDays || 7} {t('days · set by your coach.')}</small><Button type="submit" disabled={uploading || voiceBusy}>{uploading ? submitted.current ? t('Sending check-in…') : t('Saving photos…') : t('Send check-in')}<ArrowRight size={16}/></Button></div>
+      <div className="checkin-submit">{last
+        ? <Button type="submit" disabled={uploading || voiceBusy}>{uploading ? submitted.current ? t('Sending check-in…') : t('Saving photos…') : t('Send check-in')}<ArrowRight size={16}/></Button>
+        : <Button type="submit" disabled={uploading || (f?.required && !answered)}>{t('Continue')}<ArrowRight size={16}/></Button>}</div>
     </fieldset></form>
   </Modal>;
+}
+
+// A measurement: the number itself (tap to type) above a scroll wheel with tenths.
+function NumberStep({ field, label, value, previous, onChange }) {
+  const min=Number(field.min ?? 0), max=Number(field.max ?? 100000);
+  const wheel=max-min<=1000;
+  const rest=hasAnswer(previous)?Number(previous):NUMBER_REST[field.id] ?? Math.round((min+max)/2);
+  return <div className="checkin-number">
+    <label className="checkin-number-value"><span className="sr-only">{label}</span><span className="checkin-question" aria-hidden="true">{t(field.label)}</span>
+      <span className="checkin-number-entry"><input aria-label={label} type="number" inputMode="decimal" min={min} max={max} step="any" required={Boolean(field.required)} value={value} placeholder={hasAnswer(previous)?String(previous):'—'} onFocus={e=>e.target.select()} onChange={e=>onChange(e.target.value)}/>{field.unit && <em>{t(field.unit)}</em>}</span>
+    </label>
+    {wheel && <WheelPicker min={min} max={max} value={value===''?'':Number(value)} center={rest} unit={field.unit ? t(field.unit) : ''} label={t(field.label)} onChange={v=>onChange(String(v))}/>}
+    <div className="checkin-number-hints">
+      {hasAnswer(previous) && <button type="button" className="checkin-same" onClick={()=>{tickHaptic();onChange(String(previous));}}>{t('Same as last time · {previous} {unit}', { previous, unit: field.unit || '' })}</button>}
+      {!hasAnswer(previous) && <small className="muted">{wheel?t('Scroll the wheel or tap the number to type.'):t('Tap the number to type your reading.')}</small>}
+    </div>
+  </div>;
+}
+
+// Shown once the check-in is saved: a short, clear confirmation.
+function CheckinSent({ onDone }) {
+  const ref=useRef(null);
+  useEffect(()=>{ ref.current?.focus(); const timer=setTimeout(onDone,4200); return ()=>clearTimeout(timer); },[]);
+  return <div className="checkin-sent" role="status" aria-live="polite">
+    <div className="checkin-sent-card">
+      <svg className="summary-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" pathLength="1"/><path pathLength="1" d="M21 33.5l7.5 7.5L44 25"/></svg>
+      <h2>{t('Check-in sent')}</h2>
+      <p>{t('Your coach will review it and reply here.')}</p>
+      <Button ref={ref} onClick={onDone}>{t('Done')}</Button>
+    </div>
+  </div>;
 }
 
 export function Checkins({ clientId, coach=false }) {
   const { data,update,notify,runAction }=useApp();
   const client=data.clients.find(c=>c.id===clientId);
   const rows=data.checkins.filter(c=>c.clientId===clientId).sort((a,b)=>b.date.localeCompare(a.date));
-  const [form,setForm]=useState(null),[selectedId,setSelectedId]=useState(null),[response,setResponse]=useState(''),[settings,setSettings]=useState(false),[reviewAudio,setReviewAudio]=useState(null),[reviewError,setReviewError]=useState(''),[reviewBusy,setReviewBusy]=useState(false),[reviewVoiceBusy,setReviewVoiceBusy]=useState(false),[followUp,setFollowUp]=useState(false),[filter,setFilter]=useState('All');
+  const [form,setForm]=useState(null),[sent,setSent]=useState(false),[selectedId,setSelectedId]=useState(null),[response,setResponse]=useState(''),[settings,setSettings]=useState(false),[reviewAudio,setReviewAudio]=useState(null),[reviewError,setReviewError]=useState(''),[reviewBusy,setReviewBusy]=useState(false),[reviewVoiceBusy,setReviewVoiceBusy]=useState(false),[followUp,setFollowUp]=useState(false),[filter,setFilter]=useState('All');
   const plan=checkinPlanFor(client),schedule=checkinSchedule(client,rows),today=rows.find(r=>r.date===zonedDay(clientTimezone(client)));
   const selected=rows.find(r=>r.id===selectedId);
   function start() {
@@ -125,7 +182,8 @@ export function Checkins({ clientId, coach=false }) {
     {rows.filter(r=>filter==='All' || filter==='Pending review'&&!r.reviewed || filter==='Reviewed'&&r.reviewed || filter==='Follow-up'&&r.followUp).map(r=><button className="card checkin-summary" key={r.id} onClick={()=>{setSelectedId(r.id);setResponse(r.response || '');setReviewAudio(r.responseAudio || null);setReviewError('');setFollowUp(Boolean(r.followUp));}}><span className={`status-icon ${r.reviewed?'green':'amber'}`}><Check size={18}/></span><span><b>{shortDate(r.date)}</b><small>{r.reviewed?t('Reviewed by coach'):t('Waiting for review')}{hasAnswer(answerFor(r,{id:'weight'}))?t(' · {answerFor} kg', { answerFor: answerFor(r,{id:'weight'}) }):''}</small></span><ArrowRight size={17}/></button>)}
     {!rows.length && <Empty title={t('Your first check-in')} detail={t('Your coach’s requested measurements and answers will build a clear history here.')}/>}
     {settings && <CheckinSettings key={client.id} client={client} onClose={()=>setSettings(false)}/>}
-    {form && <CheckinForm row={form} client={client} onClose={()=>setForm(null)}/>}
+    {form && <CheckinForm row={form} client={client} onClose={()=>setForm(null)} onSent={()=>setSent(true)}/>}
+    {sent && <CheckinSent onDone={()=>setSent(false)}/>}
     {selected && <Modal title={t('{value}’s check-in · {shortDate}', { value: client.name.split(' ')[0], shortDate: shortDate(selected.date) })} onClose={()=>setSelectedId(null)}>
       <AudioPlayer file={selected.audio}/>{selected.updateText&&<Notice><b>{t('Client update')}</b><p>{selected.updateText}</p></Notice>}{selected.transcript&&<Notice><b>{t('Transcript · reviewed by client')}</b><p>{selected.transcript}</p></Notice>}<CheckinBrief summary={selected.summary || checkinSummary(data,selected)}/>
       <div className="checkin-review-answers">{schemaFor(selected).map(f=>{

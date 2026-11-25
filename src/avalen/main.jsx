@@ -103,6 +103,7 @@ import "./food-scan.css";
 import "./polish.css";
 import "./payments.css";
 import "./native.css";
+import "./refresh.css";
 import "./rtl.css";
 import { ClientPayments } from "./payments.jsx";
 import { AvalenAssistant } from "./AvalenAssistant.jsx";
@@ -149,6 +150,8 @@ function App() {
   function notify(message, undo = null) { setToast({ message, undo, id: uid() }); }
   useEffect(() => { if (toast) { const timer = setTimeout(() => setToast(null),8000); return () => clearTimeout(timer); } },[toast]);
   useEffect(() => { try { sessionStorage.setItem('avalen.role',role); } catch {} },[role]);
+  // Load the coach screens in the background, so the first visit to each never shows a loader.
+  useEffect(() => { if (role !== 'coach') return; const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 600)); idle(() => { import('./coach.jsx').catch(() => {}); }); }, [role]);
   const [search, setSearch] = useState(false);
   const [welcomePreview, setWelcomePreview] = useState(() => new URLSearchParams(location.search).get('preview') === 'welcome');
   const [splash, setSplash] = useState(() => {

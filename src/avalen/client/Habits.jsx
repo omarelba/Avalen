@@ -6,7 +6,8 @@ import { dayKey } from '../store.js';
 import { Hydration } from '../ReferenceMotion.jsx';
 import { Meter, SectionHead } from '../ui.jsx';
 import { t } from '../i18n.js';
-import { lightHaptic } from '../haptics.js';
+import { lightHaptic, successHaptic } from '../haptics.js';
+import { CountUp } from '../motion.jsx';
 
 export function Habits() {
   const { data, client, update } = useApp();
@@ -23,6 +24,7 @@ export function Habits() {
     }
     setErrors((previous) => ({ ...previous, [h.id]: "" }));
     setEdits((previous) => ({ ...previous, [h.id]: String(Number(Number(value).toFixed(3))) }));
+    const before = values[h.id] || 0, next = Number(Number(value).toFixed(3));
     update((d) => {
       let row = d.habitLogs.find(
         (x) => x.clientId === client.id && x.date === today,
@@ -31,8 +33,11 @@ export function Habits() {
         row = { clientId: client.id, date: today, values: {} };
         d.habitLogs.push(row);
       }
-      row.values[h.id] = Number(Number(value).toFixed(3));
-    }).then((result) => { if (!result?.error) lightHaptic(); });
+      row.values[h.id] = next;
+    }).then((result) => {
+      if (result?.error) { setErrors((previous) => ({ ...previous, [h.id]: result.error })); return; }
+      if (h.target > 0 && before < h.target && next >= h.target) successHaptic(); else lightHaptic();
+    });
   }
   return (
     <>
@@ -54,8 +59,8 @@ export function Habits() {
                 )
               }
             />
-            <strong>
-              {(values[h.id] || 0).toLocaleString()}{" "}
+            <strong className={(values[h.id] || 0) >= h.target ? 'is-reached' : ''}>
+              <CountUp value={values[h.id] || 0} identity={`habit:${client.id}:${h.id}`}/>{" "}
               <small>
                 / {h.target.toLocaleString()} {h.unit}
               </small>

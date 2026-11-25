@@ -1,12 +1,14 @@
 import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { MovingIndicator, useAnimatedNumber, useMotionReduced, animate, timing, ease, TrendLine } from "./motion.jsx";
-import { chartRecords, fieldMessage } from "./validation.js";
+import { chartRecords, fieldMessage, passwordStrength, PASSWORD_LEVELS, PASSWORD_MAX, PASSWORD_MIN } from "./validation.js";
 import {
   ArrowLeft,
   ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  EyeOff,
   Plus,
   X,
   Image as ImageIcon,
@@ -198,8 +200,12 @@ export function Stat({ label, value, note, tone, children }) {
 }
 export function Ring({ value, target, label, unit = "", tone = "green", motionKey = "" }) {
   const shown = useAnimatedNumber(value, `${motionKey}:macro:${label}`, 0);
+  // A short pulse when something is logged, so the change is noticed at a glance.
+  const previous = useRef(value), [bump, setBump] = useState(0);
+  useEffect(() => { if (value > previous.current) setBump((n) => n + 1); previous.current = value; }, [value]);
+  useEffect(() => { if (!bump) return; const timer = setTimeout(() => setBump(0), 700); return () => clearTimeout(timer); }, [bump]);
   return (
-    <div className={`ring-item ${tone}`} aria-label={t('{label}: {value}{unit} of {target}{unit2}', { label, value, unit, target, unit2: unit })}>
+    <div className={`ring-item ${tone} ${bump ? 'is-bumped' : ''} ${target > 0 && value >= target ? 'is-reached' : ''}`} aria-label={t('{label}: {value}{unit} of {target}{unit2}', { label, value, unit, target, unit2: unit })}>
       <div className="ring" aria-hidden="true">
         <svg viewBox="0 0 80 80" aria-hidden="true">
           <circle cx="40" cy="40" r="35" className="ring-track" />
@@ -390,6 +396,11 @@ export function Modal({ title, onClose, children, wide = false, className = "", 
     const el = ref.current;
     const prior = document.activeElement;
     el.showModal();
+    // Start on the title, not the close button: screen readers announce the sheet, and
+    // iPhone doesn't draw a keyboard focus ring around the X on every open.
+    // A field that asks for focus (autofocus, such as search) keeps it.
+    const landed = document.activeElement;
+    if (!landed || landed === el || landed.closest('.modal-drag-handle')) el.querySelector(':scope > .modal-drag-handle > h2')?.focus({ preventScroll: true });
     const old = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -416,7 +427,7 @@ export function Modal({ title, onClose, children, wide = false, className = "", 
       }}
     >
       <header className="modal-drag-handle" onPointerDown={beginDrag} onPointerMove={moveDrag} onPointerUp={() => endDrag()} onPointerCancel={() => endDrag(true)}>
-        <h2 id={titleId}>{title}</h2>
+        <h2 id={titleId} tabIndex={-1}>{title}</h2>
         <IconButton label={t('Close dialog')} disabled={!canClose} onClick={requestClose}>
           <X size={20} />
         </IconButton>
@@ -455,6 +466,46 @@ export function Field({ label, hint, children, ...props }) {
       {hint && !error && <small id={hintId} className="field-hint muted">{hint}</small>}
       {error && <small id={errorId} className="error" role="alert">{error}</small>}
     </label>
+  );
+}
+// A password input with a show/hide button. New passwords (strength) get a live meter
+// that updates as the person types, and the minimum length the server accepts.
+export function PasswordField({ label, name = 'password', strength = false, newPassword = strength, hint, ...props }) {
+  const [shown, setShown] = useState(false);
+  const [value, setValue] = useState('');
+  const [error, setError] = useState('');
+  const id = useId(), hintId = useId(), errorId = useId(), meterId = useId();
+  const level = strength ? passwordStrength(value) : null;
+  function validate(input) {
+    input.setCustomValidity('');
+    const message = fieldMessage(input, label);
+    input.setCustomValidity(message);
+    setError(message);
+  }
+  const described = [error ? errorId : hint ? hintId : null, level != null ? meterId : null].filter(Boolean).join(' ') || undefined;
+  return (
+    <div className="field password-field">
+      <label htmlFor={id}>{label}</label>
+      <div className="password-input">
+        <input {...props} id={id} name={name} type={shown ? 'text' : 'password'}
+          minLength={newPassword ? PASSWORD_MIN : undefined} maxLength={PASSWORD_MAX}
+          autoComplete={newPassword ? 'new-password' : 'current-password'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
+          aria-invalid={error ? true : undefined} aria-describedby={described}
+          onInvalid={(event) => { validate(event.currentTarget); props.onInvalid?.(event); }}
+          onBlur={(event) => { if (event.currentTarget.value) validate(event.currentTarget); props.onBlur?.(event); }}
+          onChange={(event) => { event.currentTarget.setCustomValidity(''); setError(''); setValue(event.currentTarget.value); props.onChange?.(event); }} />
+        <button type="button" className="password-toggle" aria-label={shown ? t('Hide password') : t('Show password')} aria-pressed={shown} aria-controls={id}
+          onPointerDown={(event) => event.preventDefault()} onClick={() => setShown(!shown)}>
+          {shown ? <EyeOff size={19} aria-hidden="true"/> : <Eye size={19} aria-hidden="true"/>}
+        </button>
+      </div>
+      {level != null && <div className={`password-strength is-${PASSWORD_LEVELS[level].toLowerCase()}`} id={meterId}>
+        <span className="password-strength-bars" aria-hidden="true">{PASSWORD_LEVELS.map((_, i) => <i key={i} className={i <= level ? 'on' : ''}/>)}</span>
+        <small aria-live="polite">{t('Password strength: {level}', { level: t(PASSWORD_LEVELS[level]) })}</small>
+      </div>}
+      {hint && !error && <small id={hintId} className="field-hint muted">{hint}</small>}
+      {error && <small id={errorId} className="error" role="alert">{error}</small>}
+    </div>
   );
 }
 export function Media({ fileId, alt = "", className = "", type }) {

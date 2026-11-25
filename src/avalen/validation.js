@@ -17,8 +17,33 @@ export function fieldMessage(input, label = 'this field') {
   if (validity.rangeOverflow) return t('Enter {max} or less.', { max: input.max });
   if (validity.stepMismatch) return input.step === '1' ? t('Enter a whole number.') : t('Use increments of {step}.', { step: input.step });
   if (validity.patternMismatch) return t('Please use the requested format.');
+  if (validity.tooShort) return t('Use at least {min} characters.', { min: input.minLength });
+  if (validity.tooLong) return t('Use {max} characters or fewer.', { max: input.maxLength });
   return '';
 }
+
+// Passwords: at least PASSWORD_MIN characters, no more than PASSWORD_MAX. The server
+// enforces the same limits (server/context.js, server/routes/accounts.js).
+export const PASSWORD_MIN = 8;
+export const PASSWORD_MAX = 200;
+const COMMON_PASSWORDS = ['password', 'passw0rd', '12345678', '123456789', '1234567890', 'qwerty', 'qwertyuiop', 'iloveyou', 'avalen', 'letmein', 'welcome', 'admin', 'abc123', '11111111', '00000000'];
+// A quick estimate for the strength meter, from length, variety and obvious patterns.
+// 0 = weak, 1 = fair, 2 = good, 3 = strong. It guides; the server only checks length.
+export function passwordStrength(password = '') {
+  const value = String(password);
+  if (!value) return null;
+  const lower = value.toLowerCase();
+  if (value.length < PASSWORD_MIN || COMMON_PASSWORDS.some((word) => lower.includes(word)) || /^(.)\1+$/.test(value)) return 0;
+  const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(value)).length;
+  let score = 0;
+  if (value.length >= 10) score++;
+  if (value.length >= 14) score++;
+  if (kinds >= 2) score++;
+  if (kinds >= 3) score++;
+  if (/^\d+$/.test(value) || /(.)\1\1/.test(value)) score--;
+  return Math.max(0, Math.min(3, score - 1 + (value.length >= 18 ? 1 : 0)));
+}
+export const PASSWORD_LEVELS = ['Weak', 'Fair', 'Good', 'Strong'];
 
 export function programError(program) {
   if (!program.name?.trim()) return t('Give your programme a name.');

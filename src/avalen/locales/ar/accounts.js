@@ -13,7 +13,7 @@ export default {
   'Create a coach account': 'إنشاء حساب مدرّب',
   'I have a coach code': 'لدي رمز مدرّب',
   'Create a client account': 'إنشاء حساب متدرّب',
-  'At least 12 characters': '12 حرفًا على الأقل',
+  'At least 8 characters': '8 أحرف على الأقل',
   'Create coach account': 'إنشاء حساب مدرّب',
   'Join your coach': 'الانضمام إلى مدرّبك',
   'New here? Join with a coach code': 'جديد هنا؟ الانضمام برمز مدرّب',

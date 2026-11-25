@@ -3,7 +3,7 @@ import { wearablesEnabled } from '../features.js';
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Download, Languages, LogOut, UserMinus } from "lucide-react";
 import { download } from "../store.js";
-import { Button, Field, Notice, Modal, SectionHead } from "../ui.jsx";
+import { Button, Field, PasswordField, Notice, Modal, SectionHead } from "../ui.jsx";
 import { leaveBoot } from "../BrandMark.jsx";
 import {
   acceptConnection,
@@ -42,6 +42,11 @@ function LanguageSwitch({ mode }) {
       <Languages size={16} aria-hidden="true" />{l.name}
     </button>
   );
+}
+// The app opens at the top after signing in, wherever the sign-in screen was scrolled.
+function ScrollTop({ children }) {
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
+  return children;
 }
 export function AccountGate({ children }) {
   const [ready, setReady] = useState(!connectedMode()),
@@ -126,7 +131,7 @@ export function AccountGate({ children }) {
       setBusy(false);
     }
   }
-  if (ready) return children;
+  if (ready) return <ScrollTop>{children}</ScrollTop>;
   const copy = {
     welcome: [t('Welcome to Avalen.'), t('Your training, nutrition and coach in one place.')],
     login: [t('Welcome back.'), t('Sign in to your coaching workspace.')],
@@ -166,8 +171,8 @@ export function AccountGate({ children }) {
           {mode === "reset" && (
             <>
               <Field label={t('6-digit code')} name="code" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} dir="ltr" className="coach-code-input" />
-              <Field label={t('New password')} name="password" type="password" required minLength={12} maxLength={200} autoComplete="new-password" hint={t('At least 12 characters')} />
-              <Field label={t('Confirm new password')} name="confirmPassword" type="password" required minLength={12} maxLength={200} autoComplete="new-password" />
+              <PasswordField label={t('New password')} name="password" required strength hint={t('At least 8 characters')} />
+              <PasswordField label={t('Confirm new password')} name="confirmPassword" required newPassword />
             </>
           )}
           {error && <p role="alert" className="error">{error}</p>}
@@ -198,17 +203,15 @@ export function AccountGate({ children }) {
           )}
           {notice && <p role="status" className="account-notice">{notice}</p>}
           <Field label={t('Email')} name="email" type="email" required autoComplete="email" dir="ltr" defaultValue={(mode === "login" && resetEmail) || draft.fields?.email} />
-          <Field
+          <PasswordField
+            key={mode === "login" ? "current" : "new"}
             label={t('Password')}
             name="password"
-            type="password"
             required
-            minLength={12}
-            maxLength={200}
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            hint={mode === "login" ? undefined : t('At least 12 characters')}
+            strength={mode !== "login"}
+            hint={mode === "login" ? undefined : t('At least 8 characters')}
           />
-          {mode !== "login" && <Field label={t('Confirm password')} name="confirmPassword" type="password" required minLength={12} maxLength={200} autoComplete="new-password" />}
+          {mode !== "login" && <PasswordField label={t('Confirm password')} name="confirmPassword" required newPassword />}
           {error && <p role="alert" className="error">{error}</p>}
           <Button type="submit" disabled={busy || !status}>
             {busy
@@ -405,7 +408,7 @@ export function DeleteAccount({ role }) {
       <p className="muted">{t('This can’t be undone.')}</p>
       <form onSubmit={remove}>
         <fieldset disabled={busy} className="save-fields">
-          <Field label={t('Your password')} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordField label={t('Your password')} name="currentPassword" required value={password} onChange={(e) => setPassword(e.target.value)} />
           <Field label={t('Type DELETE to confirm')} autoComplete="off" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           {error && <p className="error" role="alert">{error}</p>}
           <Button type="submit" disabled={confirm !== "DELETE" || !password}>{busy ? t('Deleting…') : coach ? t('Delete workspace and account') : t('Delete my account')}</Button>

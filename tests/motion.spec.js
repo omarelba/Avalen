@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { answerCheckin } from "./helpers/checkin-flow.js";
 const nav = (p, name) =>
   p
     .getByRole("navigation", { name: "Main navigation" })
@@ -217,6 +218,7 @@ test("a waveform uses the input stream, falls silent with it, and a recording ca
   await p.goto("/#/client/coach?tab=Check-in");
   await p.getByRole("button", { name: "Start check-in", exact: true }).click();
   await p.evaluate(installMicrophone);
+  await answerCheckin(p, { "Weight (kg)": "80" }, { send: false });
   await p
     .locator(".checkin-voice-disclosure > summary")
     .filter({ hasText: "Add a voice update" })

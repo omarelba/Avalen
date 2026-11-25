@@ -24,4 +24,5 @@ export default {
   '{count} exercises': { one: '{count} exercise', other: '{count} exercises' },
   '{count} sessions this week': { one: '{count} session this week', other: '{count} sessions this week' },
   '{count} days ago': { one: '{count} day ago', other: '{count} days ago' },
+  '{count} sets': { one: '{count} set', other: '{count} sets' },
 };

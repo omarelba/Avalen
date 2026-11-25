@@ -5,8 +5,9 @@ import { Button, Modal } from './ui.jsx';
 import { layoutFrom, resolveLayout } from './home-layout.js';
 import { t } from './i18n.js';
 
+// Sits at the top of Home, beside the date, so the layout is easy to find and change.
 export function EditHomeButton({ onClick }) {
-  return <button className="home-edit-button" onClick={onClick}><LayoutGrid size={16}/>{t('Customise home')}</button>;
+  return <button type="button" className="home-edit-button home-edit-top" aria-label={t('Customise home')} onClick={onClick}><LayoutGrid size={15} aria-hidden="true"/><span>{t('Customise')}</span></button>;
 }
 
 // Shows widgets in their current order. The change is kept open until the save

@@ -1,13 +1,15 @@
 import { equal, memory, newId } from "./memory.js";
 import { utcAdd, weekday, zonedDay, dateKey, clientTimezone } from "./time.js";
 import { t } from '../i18n.js';
+// Clients may move, swap and reschedule their own sessions unless their coach turns on
+// "All changes require coach approval". Exercises and prescriptions never change.
 export const defaultScheduleRules = {
-  independent: false,
-  requireApproval: true,
+  independent: true,
+  requireApproval: false,
   allowedDays: [0, 1, 2, 3, 4, 5, 6],
   minSpacingDays: 1,
   maxWeekly: 4,
-  preserveOrder: true,
+  preserveOrder: false,
   windowStart: "06:00",
   windowEnd: "22:00",
   priorities: {},
@@ -174,6 +176,18 @@ export function proposeSchedule(
     if (request.time) row.time = request.time;
     explanation =
       "Moved only the selected session. Exercises and prescriptions stay the same.";
+  } else if (request.mode === "swap") {
+    // Two planned sessions trade days, e.g. doing Thursday's workout today.
+    if (!dateKey(request.from) || !dateKey(request.to))
+      throw new Error(t('Choose the original and new training dates.'));
+    const a = proposed.find((s) => s.date === request.from),
+      b = proposed.find((s) => s.date === request.to);
+    if (!a || !b) throw new Error(t('Choose a scheduled workout.'));
+    if (completed.has(a.date) || completed.has(b.date))
+      throw new Error(t('Completed workouts cannot move.'));
+    [a.date, b.date] = [b.date, a.date];
+    explanation =
+      "Swapped two sessions. Exercises and prescriptions stay the same.";
   } else {
     const end = utcAdd(weekStart(today), 6),
       blocked = new Set(request.unavailable || []),
@@ -281,15 +295,14 @@ export function applyProposal(
     rules = scheduleRules(client);
   if (issues.some((i) => i.hard))
     throw new Error(issues.find((i) => i.hard).text);
-  if (
-    user.role === "client" &&
-    (!rules.independent || rules.requireApproval || issues.length)
-  ) {
+  // A client who may reschedule independently applies their own change; the remaining
+  // (soft) rule notes are shown in the preview and kept on the proposal for the coach.
+  if (user.role === "client" && (!rules.independent || rules.requireApproval)) {
     proposal.status = "pending";
     proposal.requestedAt = new Date().toISOString();
     return "pending";
   }
-  if (issues.length && (!override || !reason.trim()))
+  if (user.role !== "client" && issues.length && (!override || !reason.trim()))
     throw new Error(
       t('Explain the scheduling exception and explicitly approve the rule conflicts.'),
     );

@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import { answerCheckin } from './helpers/checkin-flow.js';
 const nav=(p,name)=>p.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name,exact:true});
 const state=p=>p.evaluate(()=>JSON.parse(localStorage.getItem('avalen.workspace.v1')));
 async function demo(p){await p.goto('/');await p.getByRole('button',{name:'Explore demo'}).click();await expect(p.getByRole('heading',{name:/Make it count,/})).toBeVisible();}
@@ -15,7 +16,7 @@ test('coach configures client-specific cadence, required fields and custom quest
  const d=await state(p);expect(d.clients[0].checkinPlan.intervalDays).toBe(3);expect(d.clients[1].checkinPlan).toBeUndefined();
  await client(p);await expect(p.locator('.checkin-schedule')).toContainText('Every 3 days');await p.getByRole('button',{name:'Start check-in',exact:true}).click();
  await expect(p.getByLabel('Weight (kg)',{exact:true})).toBeVisible();await expect(p.getByRole('group',{name:'Mood',exact:true})).toHaveCount(0);
- await p.getByLabel('Weight (kg)',{exact:true}).fill('78.4');await p.getByLabel('Recovery minutes (min)',{exact:true}).fill('25');await p.getByLabel('Anything hurting?',{exact:true}).fill('Feeling good.');await p.getByRole('button',{name:'Send check-in',exact:true}).click();
+ await answerCheckin(p,{'Weight (kg)':'78.4','Recovery minutes (min)':'25','Anything hurting?':'Feeling good.'});
  const after=await state(p),row=after.checkins.find(r=>r.clientId===after.activeClientId && r.date===new Date().toLocaleDateString('en-CA')) || after.checkins.at(-1);
  expect(row.answers.weight).toBe(78.4);expect(after.measurements.filter(m=>m.clientId===row.clientId && m.date===row.date)).toHaveLength(1);expect(after.measurements.find(m=>m.clientId===row.clientId && m.date===row.date).weight).toBe(78.4);
  await p.getByLabel('Trend metric',{exact:true}).selectOption({label:'Recovery minutes (min)'});await expect(p.getByRole('slider',{name:/Recovery minutes history/})).toHaveAttribute('aria-valuetext',`${row.date}: 25 min`);
@@ -26,8 +27,8 @@ test('coach configures client-specific cadence, required fields and custom quest
 
 test('editing today corrects the same measurement and prior questions survive later coach configuration',async({page:p})=>{
  await demo(p);await coach(p);await openSettings(p);await onlyWeight(p);await p.getByRole('button',{name:'Save check-in plan',exact:true}).click();await client(p);
- await p.getByRole('button',{name:'Start check-in',exact:true}).click();await p.getByLabel('Weight (kg)',{exact:true}).fill('80');await p.getByRole('button',{name:'Send check-in',exact:true}).click();
- const before=await state(p),row=before.checkins.at(-1);await p.getByRole('button',{name:'Edit today’s check-in',exact:true}).click();await p.getByLabel('Weight (kg)',{exact:true}).fill('79.5');await p.getByRole('button',{name:'Send check-in',exact:true}).click();
+ await p.getByRole('button',{name:'Start check-in',exact:true}).click();await answerCheckin(p,{'Weight (kg)':'80'});
+ const before=await state(p),row=before.checkins.at(-1);await p.getByRole('button',{name:'Edit today’s check-in',exact:true}).click();await answerCheckin(p,{'Weight (kg)':'79.5'});
  expect((await state(p)).checkins.filter(r=>r.id===row.id)).toHaveLength(1);expect((await state(p)).measurements.filter(m=>m.clientId===row.clientId && m.date===row.date)).toHaveLength(1);
  await coach(p);await openSettings(p);await p.locator('.checkin-field-setting').filter({has:p.getByLabel('Require Weight',{exact:true})}).getByText('Edit question',{exact:true}).click();await p.getByLabel('Label for Weight',{exact:true}).fill('Morning weight');await p.getByRole('button',{name:'Save check-in plan',exact:true}).click();
  await p.getByRole('button',{name:/Waiting for review.*79.5/}).click();await expect(p.getByRole('heading',{name:'Weight',exact:true})).toBeVisible();await expect(p.getByRole('heading',{name:'Morning weight',exact:true})).toHaveCount(0);
@@ -37,7 +38,7 @@ test('legacy check-ins remain reviewable; photos and optional readings remain mi
  await demo(p);await coach(p);const before=(await state(p)).checkins;
  await p.locator('.checkin-summary').first().click();await expect(p.getByRole('heading',{name:'Mood',exact:true})).toBeVisible();await expect(p.getByRole('heading',{name:'Weight',exact:true})).toHaveCount(0);await p.getByRole('button',{name:'Close dialog',exact:true}).click();
  await openSettings(p);await onlyWeight(p);await p.locator('.checkin-field-setting').filter({has:p.getByLabel('Require Progress photos',{exact:true})}).locator('.checkin-field-toggle > label:first-child input').check();await p.getByRole('button',{name:'Save check-in plan',exact:true}).click();await client(p);
- await p.getByRole('button',{name:'Start check-in',exact:true}).click();await p.getByLabel('Weight (kg)',{exact:true}).fill('80.2');await p.getByLabel('Progress photos',{exact:true}).setInputFiles('public/design/meal-olive.webp');await expect(p.getByAltText('Check-in progress photo',{exact:true})).toBeVisible();await p.getByRole('button',{name:'Send check-in',exact:true}).click();
+ await p.getByRole('button',{name:'Start check-in',exact:true}).click();await answerCheckin(p,{'Weight (kg)':'80.2'},{send:false});await p.getByRole('button',{name:'Back',exact:true}).click();await p.getByLabel('Progress photos',{exact:true}).setInputFiles('public/design/meal-olive.webp');await expect(p.getByAltText('Check-in progress photo',{exact:true})).toBeVisible();await answerCheckin(p,{});
  const after=await state(p);expect(after.checkins).toHaveLength(before.length+1);expect(after.checkins.at(-1).photos[0].id).toBeTruthy();expect(after.checkins.at(-1).answers.waist).toBeUndefined();
 });
 

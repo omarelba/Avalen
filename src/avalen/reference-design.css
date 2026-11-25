@@ -16,7 +16,7 @@
 .exercise-demo.has-frames { aspect-ratio: 3 / 2; }
 .exercise-demo.has-frames .exercise-media-shade { background: linear-gradient(0deg, #0009, transparent 38%); }
 .exercise-demo.has-frames .exercise-media-caption { top: auto; bottom: 12px; color: #fffc; font-size: 12px; }
-.exercise-thumb { width: 48px; height: 58px; border-radius: 9px; flex-shrink: 0; object-fit: cover; filter: saturate(.7); }
+.exercise-thumb { width: 48px; height: 58px; border-radius: 9px; flex-shrink: 0; object-fit: cover; }
 .exercise-row > .exercise-number { display: none; }
 .exercise-row { gap: 12px; }
 .exercise-row > span:not(.exercise-number) { flex: 1; }
@@ -30,7 +30,7 @@
 .workout-modal > header .icon-btn { background: #242626a6; backdrop-filter: blur(20px); border-radius: 50%; color: white; }
 .workout-modal .modal-body { padding: 0 20px 16px; position: static; }
 .logger-background { position: absolute; top: 0; inset-inline-start: 0; width: 100%; height: min(720px,85dvh); border-radius: 0; z-index: 0; pointer-events: none; }
-.logger-background > img { object-fit: cover; object-position: center 28%; height: 64%; filter: brightness(.74) saturate(.65); background: #1a1c1d; }
+.logger-background > img { object-fit: cover; object-position: center 28%; height: 64%; filter: brightness(.8); background: #1a1c1d; }
 .logger-background > video { object-fit: cover; object-position: center top; filter: brightness(.9); }
 .logger-background .exercise-video-controls { pointer-events: auto; }
 .logger-meta { position: relative; z-index: 1; color: #e2e4e2; font-size: 12px; padding-top: 10px; }

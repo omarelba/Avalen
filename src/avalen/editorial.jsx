@@ -82,7 +82,7 @@ export function SessionCard({ day, date, index = 0, onSelect, saved = false }) {
 }
 
 export function EditorialHome() {
-  const { data, client, navigate, viewSession, openWorkout, openShare, ask, intakeDue, openIntake } = useApp();
+  const { data, client, navigate, viewSession, openWorkout, openShare, ask, intakeDue, openIntake, openTrainingDate } = useApp();
   const [mealEntry,setMealEntry]=useState(null), [plannedMeal, setPlannedMeal] = useState(null), [editingHome, setEditingHome] = useState(false);
   const today = dayKey(), day = scheduleDay(client, today);
   // A client whose coach hasn't built a programme yet sees that, not a recovery day.
@@ -113,7 +113,7 @@ export function EditorialHome() {
     {!data.drafts[client.id] && (planReady || completedToday) && <section className={`home-today-session ${completedToday ? 'is-complete' : day ? 'is-planned' : 'is-recovery'}`} aria-label={t('Today’s plan')}>
       <img data-session-hero="" style={{viewTransitionName: connectedHero === `${day?.id}:${today}` ? 'session-hero' : undefined}} src={todayCover || sessionPhoto(day)} alt=""/>
       <div className="home-today-content"><span className="eyebrow">{completedToday ? t('TODAY · COMPLETE') : day ? t('TODAY’S SESSION') : t('TODAY · RECOVERY')}</span><h2>{day?.name || t('Room to recover.')}</h2><p>{day ? `${t('{count} min', {count: day.minutes})} · ${t('{count} exercises', {count: day.exercises.length})} · ${t(sessionCategory(day))}` : t('Your next session is coming. Keep your recovery habits in reach.')}</p>
-      <div>{day ? <><Button onClick={() => completedToday ? openShare(completedToday) : openWorkout(day,today)}>{completedToday ? t('View workout result') : t('Start Workout')}<ArrowRight size={18}/></Button><button className="hero-detail" aria-label={t('View {name}', {name: day.name})} onClick={event => { document.querySelectorAll('[data-session-hero]').forEach(el => { el.style.viewTransitionName = 'none'; }); const image = event.currentTarget.closest('section').querySelector('img'); image.style.viewTransitionName = 'session-hero'; image.dataset.sessionSource = day.id; connectedHero = `${day.id}:${today}`; viewSession(day,today); }}>{t('Session details')}</button></> : <Button onClick={() => navigate('plan','Habits')}>{t('Recovery habits')} <ArrowRight size={18}/></Button>}</div></div>
+      <div>{day ? <><Button onClick={() => completedToday ? openShare(completedToday) : openWorkout(day,today)}>{completedToday ? t('View workout result') : t('Start Workout')}<ArrowRight size={18}/></Button><button className="hero-detail" aria-label={t('View {name}', {name: day.name})} onClick={event => { document.querySelectorAll('[data-session-hero]').forEach(el => { el.style.viewTransitionName = 'none'; }); const image = event.currentTarget.closest('section').querySelector('img'); image.style.viewTransitionName = 'session-hero'; image.dataset.sessionSource = day.id; connectedHero = `${day.id}:${today}`; viewSession(day,today); }}>{t('Session details')}</button></> : <><Button onClick={() => navigate('plan','Habits')}>{t('Recovery habits')} <ArrowRight size={18}/></Button>{!completedToday && sessions[0] && <button className="hero-detail" onClick={() => openTrainingDate(sessions[0].date)}>{t('Train today instead')}</button>}</>}</div></div>
     </section>}
     </>,
     essentials: <section className="home-essentials" aria-label={t('Daily essentials')}><button className={checkinDue.due ? 'is-due' : ''} onClick={() => navigate('coach', 'Check-in')}><CalendarDays size={19}/><span><b>{t('Check-in')}</b><small>{checkinDue.overdue ? t('Overdue · send your update') : checkinDue.due ? t('Due today') : t('Next {date}', {date: shortDate(checkinDue.dueDate)})}</small></span><ChevronRight size={16}/></button><button onClick={() => navigate('plan', 'Habits')}><Footprints size={19}/><span><b>{t('Daily habits')}</b><small>{client.habits.length ? t('{done} of {count} targets reached', {done: habitsDone, count: client.habits.length}) : t('No habits set yet')}</small></span><ChevronRight size={16}/></button></section>,
@@ -132,12 +132,11 @@ export function EditorialHome() {
     coach: <section className="editorial-coach-note"><span className="eyebrow">{t('IN YOUR CORNER')}</span><div><Avatar name={data.coach.name}/><span><b>{t(data.coach.name)}</b><small>{t('Your coach')}</small></span><MessageCircle size={20}/></div><p>{coachMessage?.text || t('A plan built around you. Talk to your coach about your next session, your progress, or how you’re feeling.')}</p><button className="text-link" onClick={() => navigate('coach','Messages')}>{t('Open conversation')} <ArrowRight size={16}/></button></section>,
   };
   return <div className="editorial-home">
-    <div className="home-greeting"><p>{formatDate(new Date(), {weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</p><h1>{t('Make it count,')}<br/><span>{client.name.split(' ')[0]}.</span></h1><div><span className="home-coach-dot"/>{t('Your coach. Your plan. Your pace.')}</div></div>
+    <div className="home-greeting"><div className="home-greeting-top"><p>{formatDate(new Date(), {weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</p><EditHomeButton onClick={() => setEditingHome(true)}/></div><h1>{t('Make it count,')}<br/><span>{client.name.split(' ')[0]}.</span></h1><div><span className="home-coach-dot"/>{t('Your coach. Your plan. Your pace.')}</div></div>
     <PaymentDueNotice/>
     {intakeDue && <button className="intake-prompt" onClick={openIntake}><span><b>{t('Tell {name} about you', {name: data.coach.name.split(' ')[0]})}</b><small>{t('8 quick questions, about a minute')}</small></span><ArrowRight size={18}/></button>}
     {data.drafts[client.id] && <div className="editorial-resume home-priority"><ResumeWorkout compact/></div>}
     {resolveLayout(client.homeLayout, availableWidgets(CLIENT_WIDGETS, 'client', wearablesEnabled())).filter((w) => w.visible).map((w) => <React.Fragment key={w.id}>{homeWidgets[w.id]}</React.Fragment>)}
-    <EditHomeButton onClick={() => setEditingHome(true)}/>
     {editingHome && <CustomiseHome widgets={availableWidgets(CLIENT_WIDGETS, 'client', wearablesEnabled())} saved={client.homeLayout} role="client" onClose={() => setEditingHome(false)} write={(d, layout) => { const c = d.clients.find((x) => x.id === client.id); if (layout) c.homeLayout = layout; else delete c.homeLayout; }}/>}
     {mealEntry === 'photo' && <PhotoMealLogger onClose={()=>setMealEntry(null)}/>}
     {mealEntry === 'food' && <FoodLogger date={today} onClose={()=>setMealEntry(null)}/>}
@@ -184,7 +183,7 @@ function SessionExercise({ exercise }) {
 }
 
 export function SessionDetail({ session, onBack }) {
-  const { data, client, update, openWorkout, openShare, resumeWorkout } = useApp();
+  const { data, client, update, openWorkout, openShare, resumeWorkout, openTrainingDate } = useApp();
   const { day, date } = session;
   const cover = useFile(day.coverFile?.id);
   const [calendarAdded, setCalendarAdded] = useState(false);
@@ -206,7 +205,7 @@ export function SessionDetail({ session, onBack }) {
       {calendarAdded && <p className="session-calendar-feedback" role="status">{t('Calendar file downloaded. Open it to add your session.')}</p>}
       <p className="session-detail-description">{client.program.progression || t('A focused {minutes}-minute strength session from your coach’s programme. Follow each exercise at your own pace and log your working sets.', { minutes: day.minutes })}</p>
       <div className="session-detail-exercises"><h2>{t('In this session')} <span>{day.exercises.length}</span></h2>{day.exercises.map(e => <SessionExercise key={e.id} exercise={e}/>)}</div>
-      <div className="session-start-bar"><Button aria-label={hasDraft ? t('Resume workout: {title}', { title: data.drafts[client.id].title }) : undefined} disabled={!completed && !hasDraft && !isToday} onClick={() => completed ? openShare(completed) : hasDraft ? resumeWorkout() : openWorkout(day,date)}>{completed ? <><Check size={18}/>{t('Workout complete')}</> : hasDraft ? <><Play size={18}/>{t('Resume workout')}</> : <><Play size={18}/>{isToday ? otherDraft ? t('Resume active workout') : t('Begin Workout') : date ? t('Scheduled for {shortDate}', { shortDate: shortDate(date) }) : t('Not scheduled')}</>}</Button></div>
+      <div className="session-start-bar"><Button aria-label={hasDraft ? t('Resume workout: {title}', { title: data.drafts[client.id].title }) : undefined} disabled={!completed && !hasDraft && !isToday && !date} onClick={() => completed ? openShare(completed) : hasDraft ? resumeWorkout() : isToday ? openWorkout(day,date) : openTrainingDate(date)}>{completed ? <><Check size={18}/>{t('Workout complete')}</> : hasDraft ? <><Play size={18}/>{t('Resume workout')}</> : <><Play size={18}/>{isToday ? otherDraft ? t('Resume active workout') : t('Begin Workout') : date ? t('Do it today or move it') : t('Not scheduled')}</>}</Button></div>
     </div>
     {shareOpen && <Modal title={t('Share your session')} onClose={() => setShareOpen(false)}><p className="muted">{t('{name} · {minutes} mins · {brand}', { name: day.name, minutes: day.minutes, brand: data.coach.brand })}</p><Button onClick={async () => { const content = `${day.name} — ${day.minutes} mins with ${data.coach.name}. ${day.exercises.map(e=>e.name).join(', ')}.`; try { await navigator.clipboard.writeText(content); setShared(true); } catch { setShared(false); } }}><Share2 size={17}/>{shared ? t('Copied') : t('Copy session details')}</Button><p role="status" className="fine-print">{shared ? t('Session details copied to clipboard.') : t('You can also select and copy the session text above.')}</p></Modal>}
   </article>;

@@ -1,0 +1,425 @@
+/* Refinements from the November pilot review: safe areas, selection, spacing.
+   Loaded after the other stylesheets so these rules settle earlier conflicts. */
+
+/* ---- Text selection ----
+   Tapping around the app never highlights text. Fields, messages and codes stay
+   selectable, so typing, copying and pasting work as usual. */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, [contenteditable]:not([contenteditable="false"]),
+.message p, .message-text, .assistant-msg p, .coach-code, .allow-select, .allow-select * {
+  -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+}
+
+/* ---- Focus ----
+   The page container is focused by the app after navigation; it never draws a ring. */
+#main-content:focus, #main-content:focus-visible { outline: none; }
+
+/* ---- Safe areas ----
+   Full-height screens keep their header clear of the status bar, notch and
+   Dynamic Island. (A later generic .modal > header rule reset this padding.) */
+/* (Other sheets already stop below the status bar; only the full-height workout needs this.) */
+.modal.workout-modal > header { padding-top: max(10px, env(safe-area-inset-top, 0px)); }
+
+/* The wordmark on sign-in and the welcome screen sits a comfortable distance
+   below the status bar on every iPhone, rather than tucked under it. */
+.account-screen { padding-top: calc(env(safe-area-inset-top, 0px) + 36px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px); }
+@media (max-width: 760px) {
+  .account-screen { padding-top: calc(env(safe-area-inset-top, 0px) + 28px); }
+  .editorial-welcome { padding-top: calc(env(safe-area-inset-top, 0px) + 28px); }
+}
+
+/* ---- Password field: show/hide and live strength ---- */
+.password-field > label { display: block; color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+.password-input { position: relative; }
+.password-input input { width: 100%; padding-inline-end: 52px; }
+.password-toggle { position: absolute; inset-block: 0; inset-inline-end: 0; width: 48px; display: grid; place-items: center; background: none; border: 0; color: var(--muted); }
+.password-toggle:active { color: var(--text); }
+.password-strength { --meter: var(--strength-weak); display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.password-strength-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; flex: 1; max-width: 180px; }
+.password-strength-bars i { height: 4px; border-radius: 2px; background: var(--line); transition: background-color var(--motion-state, 180ms) ease; }
+.password-strength-bars i.on { background: var(--meter); }
+.password-strength small { color: var(--meter); font-size: 12px; font-weight: 600; transition: color var(--motion-state, 180ms) ease; }
+:root { --strength-weak: #f0606b; --strength-fair: #f39a3d; --strength-good: #f2c94c; --strength-strong: #5fd490; }
+:root[data-theme="light"] { --strength-weak: #c62f3d; --strength-fair: #c66a12; --strength-good: #a57d00; --strength-strong: #1f7a47; }
+.password-strength.is-fair { --meter: var(--strength-fair); }
+.password-strength.is-good { --meter: var(--strength-good); }
+.password-strength.is-strong { --meter: var(--strength-strong); }
+
+/* ---- Flexible scheduling (Train) ---- */
+.reschedule-actions { display: grid; gap: 10px; }
+.reschedule-actions > .primary { width: 100%; }
+.reschedule-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 12px; background: none; border: 1px solid var(--line); border-radius: 3px; color: var(--text); font-size: 14px; }
+.reschedule-link:disabled { opacity: .5; }
+.reschedule-note { margin: 0; font-size: 13px; line-height: 1.45; }
+.training-start-action { display: grid; gap: 10px; }
+.next-up { margin: 4px 0 24px; padding: 20px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); }
+.next-up h3 { font-size: 22px; margin: 8px 0 4px; letter-spacing: -.02em; }
+.next-up p { margin: 0 0 16px; font-size: 13px; }
+.next-up-actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.next-up-actions > .primary { flex: 1 1 180px; }
+.move-days { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; margin: 14px 0 18px; }
+.move-day { display: grid; gap: 3px; text-align: start; padding: 12px; min-height: 64px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-inset, transparent); color: var(--text); transition: border-color var(--motion-press, 120ms) ease, background-color var(--motion-press, 120ms) ease; }
+.move-day b { font-size: 14px; font-weight: 600; }
+.move-day small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.move-day.has-workout small { color: var(--text); }
+.move-day.is-selected { border-color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+.move-day:disabled { opacity: .45; }
+
+/* =====================================================================
+   Workout logger: one clear focus per screen.
+   Exercise, demonstration, the current set's weight and reps, one obvious
+   Log set action, then a compact record of the sets. Everything else
+   (effort, swap, notes, FormLab, finish early) stays a tap away.
+   ===================================================================== */
+.modal.workout-modal.logger-clean { background: var(--bg); color: var(--text); }
+.modal.workout-modal.logger-clean > header { background: var(--bg); border-bottom: 0; min-height: 52px; padding-inline: 20px; }
+.modal.workout-modal.logger-clean > header h2 { font-size: 15px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.modal.workout-modal.logger-clean > header .icon-btn { width: 44px; height: 44px; min-height: 44px; background: transparent; border: 0; color: var(--text); }
+.modal.workout-modal.logger-clean .modal-body { padding: 0 20px 0; background: var(--bg); }
+
+/* Progress: one segment per exercise */
+.modal.workout-modal.logger-clean .logger-top { padding: 0 0 4px; }
+.modal.workout-modal.logger-clean .logger-exercise-rail { display: flex; gap: 4px; margin: 0; padding: 0; border: 0; overflow: visible; background: none; }
+.modal.workout-modal.logger-clean .logger-exercise-rail button { flex: 1 1 0; min-width: 0; height: 22px; padding: 0; margin: 0; display: flex; align-items: center; background: none; border: 0; border-radius: 0; }
+.modal.workout-modal.logger-clean .logger-exercise-rail button > i { position: relative; display: block; width: 100%; height: 4px; border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--text) 14%, transparent); transition: height var(--motion-state, 180ms) var(--ease-precise, ease); }
+.modal.workout-modal.logger-clean .logger-exercise-rail button > i > b { position: absolute; inset: 0; background: var(--text); transform-origin: left center; transition: transform var(--motion-state, 180ms) var(--ease-precise, ease), background-color var(--motion-state, 180ms) ease; }
+:root[dir="rtl"] .modal.workout-modal.logger-clean .logger-exercise-rail button > i > b, :root[lang="ar"] .modal.workout-modal.logger-clean .logger-exercise-rail button > i > b { transform-origin: right center; }
+.modal.workout-modal.logger-clean .logger-exercise-rail button.is-logged > i > b { background: var(--green); }
+.modal.workout-modal.logger-clean .logger-exercise-rail button[aria-current="step"] > i { height: 6px; }
+.modal.workout-modal.logger-clean .logger-session-progress { display: flex; justify-content: space-between; gap: 12px; padding: 0; margin: 2px 0 0; }
+.modal.workout-modal.logger-clean .logger-session-progress small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Exercise */
+.modal.workout-modal.logger-clean .logger-workout-heading { padding: 18px 0 0; margin: 0; }
+.modal.workout-modal.logger-clean .logger-workout-heading h2 { font-size: clamp(28px, 8vw, 34px); line-height: 1.05; font-weight: 600; letter-spacing: -.03em; margin: 0; color: var(--text); }
+.modal.workout-modal.logger-clean .logger-target-line { display: flex; flex-wrap: wrap; gap: 0; margin: 8px 0 0; padding: 0; border: 0; background: none; font-size: 14px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-target-line span { display: inline; padding: 0; border: 0; background: none; border-radius: 0; color: inherit; font-size: inherit; }
+.modal.workout-modal.logger-clean .logger-target-line span:first-child { color: var(--text); font-weight: 600; }
+.modal.workout-modal.logger-clean .logger-target-line span + span::before { content: "·"; margin: 0 8px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-quick-cue { margin: 6px 0 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+
+/* Demonstration: a compact row that opens the moving demo */
+.modal.workout-modal.logger-clean .logger-demo { margin: 16px 0 0; border-block: 1px solid var(--line); }
+.modal.workout-modal.logger-clean .logger-demo > summary { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 0; list-style: none; cursor: pointer; font-size: 14px; color: var(--text); }
+.modal.workout-modal.logger-clean .logger-demo > summary::-webkit-details-marker { display: none; }
+.modal.workout-modal.logger-clean .logger-demo > summary > span { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.modal.workout-modal.logger-clean .logger-demo > summary b { font-weight: 500; }
+.modal.workout-modal.logger-clean .logger-demo > summary small { font-size: 12px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-demo > summary > svg { color: var(--muted); transition: transform var(--motion-state, 180ms) var(--ease-precise, ease); }
+.modal.workout-modal.logger-clean .logger-demo[open] > summary > svg { transform: rotate(90deg); }
+.logger-demo-thumb { width: 48px; height: 48px; flex: none; border-radius: 8px; object-fit: cover; background: var(--card); }
+.modal.workout-modal.logger-clean .logger-demo .exercise-media.logger-background { position: relative; inset: auto; height: auto; aspect-ratio: 4 / 3; margin: 0 0 14px; border-radius: 10px; overflow: hidden; background: var(--card); }
+.modal.workout-modal.logger-clean .logger-demo .exercise-media.logger-background > img,
+.modal.workout-modal.logger-clean .logger-demo .exercise-media.logger-background > video { height: 100%; filter: none; object-fit: cover; }
+.modal.workout-modal.logger-clean .logger-demo .exercise-media-shade { display: none; }
+
+/* Current set */
+.modal.workout-modal.logger-clean .logger-working-area { position: relative; }
+.modal.workout-modal.logger-clean .set-editor { margin: 22px 0 0; padding: 0; background: none; border: 0; }
+.modal.workout-modal.logger-clean .set-editor-heading { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; }
+.modal.workout-modal.logger-clean .set-editor-heading > b { font-size: 18px; font-weight: 600; color: var(--text); }
+.modal.workout-modal.logger-clean .set-editor-heading > span:last-child { margin-inline-start: auto; font-size: 13px; color: var(--muted); max-width: none; }
+.modal.workout-modal.logger-clean .set-pips { display: flex; gap: 4px; }
+.modal.workout-modal.logger-clean .set-pips i { width: 16px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--text) 16%, transparent); }
+.modal.workout-modal.logger-clean .set-pips i.is-done { background: var(--green); }
+.modal.workout-modal.logger-clean .set-pips i.is-current { background: var(--text); }
+.modal.workout-modal.logger-clean .set-pips i.is-skipped { background: var(--muted); opacity: .5; }
+
+.modal.workout-modal.logger-clean .set-controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.modal.workout-modal.logger-clean .set-control { display: grid; grid-template-columns: 60px minmax(0, 1fr) 60px; grid-template-areas: "minus value plus"; align-items: center; gap: 4px; padding: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+.modal.workout-modal.logger-clean .set-control > label { grid-area: value; display: flex; flex-direction: column; align-items: center; padding: 0; margin: 0; min-width: 0; }
+.modal.workout-modal.logger-clean .set-control > label > span { order: 2; display: flex; gap: 5px; justify-content: center; padding: 0; margin: 0; font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: .01em; }
+.modal.workout-modal.logger-clean .set-control > label > span small { font-size: 12px; color: var(--muted); }
+.modal.workout-modal.logger-clean .set-control > label > span small::before { content: "·"; margin-inline-end: 5px; }
+.modal.workout-modal.logger-clean .set-control input { order: 1; width: 100%; height: 62px; padding: 0; margin: 0; text-align: center; font-size: 50px; font-weight: 600; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; color: var(--text); background: transparent; border: 0; border-radius: 8px; box-shadow: none; -moz-appearance: textfield; appearance: textfield; }
+.modal.workout-modal.logger-clean .set-control input::-webkit-inner-spin-button, .modal.workout-modal.logger-clean .set-control input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.modal.workout-modal.logger-clean .set-control input:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.modal.workout-modal.logger-clean .set-adjust { display: contents; }
+.modal.workout-modal.logger-clean .set-adjust > span { display: none; }
+.modal.workout-modal.logger-clean .set-adjust > button { width: 56px; height: 56px; min-height: 56px; justify-self: center; display: grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface-inset); color: var(--text); transition: transform var(--motion-press, 120ms) ease, background-color var(--motion-press, 120ms) ease; }
+.modal.workout-modal.logger-clean .set-adjust > button:first-child { grid-area: minus; }
+.modal.workout-modal.logger-clean .set-adjust > button:last-child { grid-area: plus; }
+.modal.workout-modal.logger-clean .set-adjust > button:active:not(:disabled) { transform: scale(.92); background: color-mix(in srgb, var(--text) 12%, var(--surface-inset)); }
+.modal.workout-modal.logger-clean .set-adjust > button:disabled { opacity: .35; }
+.modal.workout-modal.logger-clean .set-adjust > button svg { width: 22px; height: 22px; }
+
+.modal.workout-modal.logger-clean .set-action-area { position: static; margin: 14px 0 0; padding: 0; background: none; }
+.modal.workout-modal.logger-clean .set-action-area > .primary { width: 100%; min-height: 58px; gap: 8px; border-radius: 14px; font-size: 17px; font-weight: 600; background: var(--text); color: var(--bg); border: 0; transition: background-color var(--motion-state, 180ms) ease, color var(--motion-state, 180ms) ease, transform var(--motion-press, 120ms) ease; }
+.modal.workout-modal.logger-clean .set-action-area > .primary:active:not(:disabled) { transform: scale(.98); }
+.modal.workout-modal.logger-clean .set-action-area > .primary:disabled { background: var(--card); color: var(--muted); }
+.modal.workout-modal.logger-clean .set-action-area > .primary.set-just-logged { background: var(--green); color: var(--on-accent); animation: logger-logged 460ms var(--ease-precise, ease) both; }
+.modal.workout-modal.logger-clean .set-action-area > .primary.set-just-logged svg { animation: logger-check 460ms var(--ease-precise, ease) both; }
+@keyframes logger-logged { 0% { transform: scale(.97); } 45% { transform: scale(1.015); } 100% { transform: scale(1); } }
+@keyframes logger-check { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
+.modal.workout-modal.logger-clean .set-editor.is-ready .set-action-area > .primary { animation: logger-ready 1.2s ease 1; }
+@keyframes logger-ready { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--text) 18%, transparent); } }
+
+.modal.workout-modal.logger-clean .set-effort { margin: 10px 0 0; border: 0; }
+.modal.workout-modal.logger-clean .set-effort > summary { justify-content: center; gap: 8px; min-height: 40px; font-size: 13px; color: var(--muted); }
+.modal.workout-modal.logger-clean .set-input-error { margin: 10px 0 0; font-size: 13px; color: var(--red); }
+.modal.workout-modal.logger-clean .logger-feedback { min-height: 20px; margin: 4px 0 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--green); }
+.modal.workout-modal.logger-clean .logger-cancel { display: block; margin: 8px auto 0; background: none; border: 0; color: var(--muted); min-height: 40px; }
+
+/* Sets so far */
+.modal.workout-modal.logger-clean .logger-set-list { margin: 18px 0 6px; padding: 0; border: 0; border-top: 1px solid var(--line); background: none; }
+.modal.workout-modal.logger-clean .logger-set-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 54px; padding: 0 2px; margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-set-row .set-number { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.modal.workout-modal.logger-clean .logger-set-row.done .set-number { border-color: transparent; background: var(--green); color: var(--on-accent); }
+.modal.workout-modal.logger-clean .logger-set-row.current .set-number { border-color: var(--text); color: var(--text); }
+.modal.workout-modal.logger-clean .logger-set-row.current { color: var(--text); }
+.modal.workout-modal.logger-clean .logger-set-row .set-result { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0; background: none; border: 0; color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; text-align: start; }
+.modal.workout-modal.logger-clean .logger-set-row .set-result small { font-size: 12px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-set-row .set-pending { display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.modal.workout-modal.logger-clean .logger-set-row .set-last { font-size: 12px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-set-row .set-status { font-size: 12px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-set-row.current .set-status { color: var(--text); font-weight: 600; }
+.modal.workout-modal.logger-clean .logger-set-row .set-undo { width: 40px; height: 40px; display: grid; place-items: center; background: none; border: 0; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-set-row.just-saved { animation: logger-row 900ms ease both; }
+@keyframes logger-row { 0% { background: color-mix(in srgb, var(--green) 22%, transparent); } 100% { background: transparent; } }
+
+/* Exercise complete */
+.modal.workout-modal.logger-clean .logger-complete { display: grid; justify-items: center; gap: 6px; padding: 26px 0 6px; text-align: center; }
+.modal.workout-modal.logger-clean .logger-complete-mark { width: 60px; height: 60px; }
+.modal.workout-modal.logger-clean .logger-complete > span { display: block; font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--text); }
+.modal.workout-modal.logger-clean .logger-complete > p { margin: 0; font-size: 14px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-up-next { width: 100%; display: grid; gap: 2px; margin: 14px 0 4px; padding: 14px 16px; text-align: start; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.modal.workout-modal.logger-clean .logger-up-next small { font-size: 11px; letter-spacing: .12em; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-up-next b { font-size: 17px; font-weight: 600; color: var(--text); }
+.modal.workout-modal.logger-clean .logger-up-next span { font-size: 13px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-complete > .primary { width: 100%; min-height: 56px; margin-top: 8px; border-radius: 14px; font-size: 16px; }
+
+/* Options, finish early and the bottom dock */
+.modal.workout-modal.logger-clean .logger-options { margin: 6px 0 0; border: 0; }
+.modal.workout-modal.logger-clean .logger-options > summary { min-height: 48px; font-size: 14px; color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-finish { display: block; width: 100%; min-height: 48px; margin: 4px 0 12px; background: none; border: 0; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.modal.workout-modal.logger-clean .logger-dock-stack { position: sticky; bottom: 0; z-index: 5; margin: 0 -20px; padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 12px); background: var(--bg); border-top: 1px solid var(--line); }
+.modal.workout-modal.logger-clean .logger-exercise-dock { position: static; display: flex; align-items: center; gap: 12px; margin: 0; padding: 0; background: none; border: 0; backdrop-filter: none; }
+.modal.workout-modal.logger-clean .logger-open-exercises { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0; background: none; border: 0; color: var(--text); text-align: start; }
+.modal.workout-modal.logger-clean .logger-open-exercises span { display: grid; flex: 1; min-width: 0; }
+.modal.workout-modal.logger-clean .logger-open-exercises small { color: var(--muted); font-size: 12px; }
+.modal.workout-modal.logger-clean .logger-pause { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--text); font-size: 13px; }
+
+/* Rest: the time, add 30 seconds, skip, then straight on to the next set */
+.modal.workout-modal.logger-clean .logger-rest { display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-areas: "orbit copy" "controls controls"; align-items: center; gap: 12px 14px; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; color: var(--text); backdrop-filter: none; }
+.modal.workout-modal.logger-clean .logger-rest .rest-orbit { grid-area: orbit; width: 52px; height: 52px; }
+.modal.workout-modal.logger-clean .logger-rest .rest-copy { grid-area: copy; display: grid; gap: 2px; min-width: 0; }
+.modal.workout-modal.logger-clean .logger-rest .rest-copy b { font-size: 30px; font-weight: 600; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--text); }
+.modal.workout-modal.logger-clean .logger-rest .rest-copy span { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modal.workout-modal.logger-clean .logger-rest .rest-controls { grid-area: controls; display: flex; gap: 8px; }
+.modal.workout-modal.logger-clean .logger-rest .rest-controls button { flex: 1 1 0; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 15px; font-weight: 500; }
+.modal.workout-modal.logger-clean .logger-rest .rest-controls button:first-child:not(.rest-next) { flex: 0 0 48px; padding: 0; }
+.modal.workout-modal.logger-clean .logger-rest .rest-controls button:last-child:not(.rest-next) { background: var(--text); color: var(--bg); border-color: transparent; }
+.modal.workout-modal.logger-clean .logger-rest .rest-controls .rest-next { background: var(--text); color: var(--bg); border-color: transparent; font-weight: 600; }
+.modal.workout-modal.logger-clean .logger-rest .rest-track { stroke: color-mix(in srgb, var(--text) 14%, transparent); }
+.modal.workout-modal.logger-clean .logger-rest .rest-progress, .modal.workout-modal.logger-clean .logger-rest .rest-check { stroke: var(--green); }
+.modal.workout-modal.logger-clean .logger-dock-stack .logger-rest { background: none; box-shadow: none; }
+.modal.workout-modal.logger-clean .logger-set-row > * { grid-column: auto; grid-row: auto; }
+.modal.workout-modal.logger-clean .logger-set-row .set-status { min-width: 0; padding: 0 4px; background: none; border: 0; }
+.modal.workout-modal.logger-clean .logger-set-row .set-pending, .modal.workout-modal.logger-clean .logger-set-row.current .set-pending { color: inherit; }
+.modal.workout-modal.logger-clean .logger-set-row .set-pending small { color: var(--muted); }
+.modal.workout-modal.logger-clean .logger-set-row .set-result { align-items: center; }
+.modal.workout-modal.logger-clean .logger-open-exercises small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modal.workout-modal.logger-clean .logger-complete-mark { overflow: visible; }
+.modal.workout-modal.logger-clean .logger-complete-mark circle { fill: color-mix(in srgb, var(--green) 14%, transparent); stroke: var(--green); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: logger-draw 520ms var(--ease-precise, ease) forwards; }
+.modal.workout-modal.logger-clean .logger-complete-mark path { fill: none; stroke: var(--green); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: logger-draw 360ms var(--ease-precise, ease) 300ms forwards; }
+@keyframes logger-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .modal.workout-modal.logger-clean .logger-complete-mark circle, .modal.workout-modal.logger-clean .logger-complete-mark path { animation: none; stroke-dashoffset: 0; }
+  .modal.workout-modal.logger-clean .set-action-area > .primary.set-just-logged, .modal.workout-modal.logger-clean .set-action-area > .primary.set-just-logged svg, .modal.workout-modal.logger-clean .logger-set-row.just-saved { animation: none; }
+}
+:root[data-motion="reduced"] .modal.workout-modal.logger-clean .logger-complete-mark circle, :root[data-motion="reduced"] .modal.workout-modal.logger-clean .logger-complete-mark path { animation: none; stroke-dashoffset: 0; }
+
+/* ---- Workout complete: the summary first, then sharing ---- */
+.share-modal .workout-summary { display: grid; justify-items: center; text-align: center; padding: 8px 0 22px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+.share-modal .summary-mark { width: 72px; height: 72px; overflow: visible; margin-bottom: 14px; }
+.share-modal .summary-mark circle { fill: color-mix(in srgb, var(--green) 14%, transparent); stroke: var(--green); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: logger-draw 600ms var(--ease-precise, ease) forwards; }
+.share-modal .summary-mark path { fill: none; stroke: var(--green); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: logger-draw 380ms var(--ease-precise, ease) 380ms forwards; }
+.share-modal .workout-summary .eyebrow { color: var(--green); letter-spacing: .16em; }
+.share-modal .workout-summary h2 { margin: 6px 0 4px; font-size: clamp(28px, 8vw, 36px); line-height: 1.05; letter-spacing: -.03em; font-weight: 600; }
+.share-modal .workout-summary > p { margin: 0; font-size: 15px; }
+.share-modal .summary-stats { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 22px 0 6px; }
+.share-modal .summary-stats > span { display: grid; gap: 4px; padding: 4px 6px; }
+.share-modal .summary-stats > span + span { border-inline-start: 1px solid var(--line); }
+.share-modal .summary-stats b { font-size: clamp(26px, 8vw, 34px); font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+.share-modal .summary-stats small { font-size: 12px; color: var(--muted); }
+.share-modal .summary-prs { margin: 12px 0 0; padding: 8px 14px; border-radius: 999px; background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); font-size: 13px; font-weight: 600; }
+.share-modal .summary-exercises { width: 100%; list-style: none; margin: 18px 0 0; padding: 0; text-align: start; }
+.share-modal .summary-exercises li { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; border-top: 1px solid var(--line); }
+.share-modal .summary-exercises li > span { display: grid; gap: 2px; min-width: 0; }
+.share-modal .summary-exercises b { font-size: 15px; font-weight: 500; }
+.share-modal .summary-exercises small { font-size: 12px; color: var(--muted); }
+.share-modal .summary-exercises em { font-style: normal; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.share-modal .share-label { margin-top: 18px; }
+.share-modal .summary-done { width: 100%; min-height: 54px; margin: 18px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); }
+@media (prefers-reduced-motion: reduce) { .share-modal .summary-mark circle, .share-modal .summary-mark path { animation: none; stroke-dashoffset: 0; } }
+:root[data-motion="reduced"] .share-modal .summary-mark circle, :root[data-motion="reduced"] .share-modal .summary-mark path { animation: none; stroke-dashoffset: 0; }
+
+/* =====================================================================
+   Check-in: one question at a time
+   ===================================================================== */
+.modal.checkin-flow .checkin-answers { border: 0; padding: 0; margin: 0; min-width: 0; }
+.modal.checkin-flow .checkin-flow-top { position: sticky; top: 0; z-index: 3; margin: 0 -20px; padding: 0 20px 6px; background: var(--card); }
+.checkin-flow-progress { height: 4px; border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--text) 12%, transparent); }
+.checkin-flow-progress > span { display: block; height: 100%; background: var(--green); transform-origin: left center; transition: transform 420ms var(--ease-precise, cubic-bezier(.2,.8,.2,1)); }
+:root[lang="ar"] .checkin-flow-progress > span { transform-origin: right center; }
+.checkin-flow-nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 44px; }
+.checkin-flow-nav small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.checkin-back, .checkin-skip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; background: none; border: 0; color: var(--text); font-size: 14px; }
+.checkin-back { justify-self: start; }
+.checkin-back:disabled { opacity: 0; pointer-events: none; }
+.checkin-skip { justify-self: end; color: var(--muted); }
+.checkin-step { min-height: min(52vh, 440px); padding: 14px 0 8px; animation: checkin-step-in 340ms var(--ease-precise, cubic-bezier(.2,.8,.2,1)) both; }
+.checkin-step[data-direction="back"] { animation-name: checkin-step-back; }
+@keyframes checkin-step-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes checkin-step-back { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+:root[lang="ar"] .checkin-step { animation-name: checkin-step-back; }
+:root[lang="ar"] .checkin-step[data-direction="back"] { animation-name: checkin-step-in; }
+.checkin-step > .eyebrow { display: block; margin-bottom: 8px; color: var(--muted); letter-spacing: .14em; font-size: 11px; }
+.checkin-question, .checkin-rating h2 { display: block; margin: 0 0 6px; font-size: clamp(26px, 7.4vw, 32px); line-height: 1.1; font-weight: 600; letter-spacing: -.025em; color: var(--text); }
+.checkin-step .field textarea { min-height: 150px; font-size: 17px; }
+.checkin-step .field > span { display: none; }
+.checkin-reflection .field > span { display: block; }
+
+/* Number: the value, then the wheel */
+.checkin-number { display: grid; gap: 14px; }
+.checkin-number-value { display: grid; gap: 10px; margin: 0; }
+.checkin-number-entry { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
+.modal.checkin-flow .checkin-number-entry input { width: 7ch; min-height: 0; height: auto; max-width: 70%; padding: 0; text-align: center; font-size: 56px; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--text); background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; -moz-appearance: textfield; appearance: textfield; }
+.checkin-number-entry input::-webkit-inner-spin-button, .checkin-number-entry input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.checkin-number-entry input::placeholder { color: color-mix(in srgb, var(--text) 25%, transparent); }
+.modal.checkin-flow .checkin-number-entry input:focus { outline: none; border-bottom-color: var(--text); }
+.checkin-number-entry em { font-style: normal; font-size: 18px; color: var(--muted); }
+.checkin-number-hints { display: flex; justify-content: center; min-height: 40px; }
+.checkin-same { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: none; color: var(--text); font-size: 14px; }
+.checkin-previous { display: block; margin-top: 14px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Wheel */
+.wheel-picker { position: relative; display: flex; align-items: center; justify-content: center; gap: 4px; height: 220px; -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+.wheel-band { position: absolute; inset-inline: 0; top: 50%; height: 44px; transform: translateY(-50%); border-radius: 12px; background: color-mix(in srgb, var(--text) 9%, transparent); pointer-events: none; }
+.wheel-column { position: relative; height: 220px; width: 92px; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.wheel-column::-webkit-scrollbar { display: none; }
+.wheel-column:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 12px; }
+.wheel-picker[data-decimals] .wheel-column + .wheel-dot + .wheel-column { width: 56px; }
+.wheel-pad { height: 88px; }
+.wheel-item { height: 44px; display: grid; place-items: center; scroll-snap-align: center; font-size: 22px; font-variant-numeric: tabular-nums; color: var(--muted); opacity: .45; transition: color 120ms ease, opacity 120ms ease, transform 120ms ease; cursor: pointer; }
+.wheel-item.is-near { opacity: .75; }
+.wheel-item.is-active { color: var(--text); opacity: 1; font-size: 26px; font-weight: 600; }
+.wheel-dot { font-size: 26px; font-weight: 600; color: var(--text); }
+.wheel-unit { min-width: 40px; font-size: 16px; color: var(--muted); }
+
+/* Ratings: big, tappable options */
+.checkin-rating > div[role="group"] { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 22px; }
+.checkin-rating > div[role="group"] button { aspect-ratio: 1; min-height: 52px; display: grid; place-items: center; border-radius: 16px; border: 1px solid var(--line); background: var(--surface-inset); color: var(--text); font-size: 22px; transition: transform var(--motion-press, 120ms) ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+.checkin-rating > div[role="group"] button:active { transform: scale(.94); }
+.checkin-rating > div[role="group"] button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: transparent; animation: checkin-pick 300ms var(--ease-precise, ease); }
+@keyframes checkin-pick { 0% { transform: scale(.9); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+/* Footer action */
+.modal.checkin-flow .checkin-submit { position: sticky; bottom: 0; z-index: 3; display: block; margin: 0 -20px; padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 12px); background: var(--card); border-top: 1px solid var(--line); }
+.modal.checkin-flow .checkin-submit > .primary { width: 100%; min-height: 54px; border-radius: 14px; font-size: 16px; }
+
+/* Sent */
+.checkin-sent { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: checkin-fade 220ms ease both; }
+.checkin-sent-card { width: min(100%, 360px); display: grid; justify-items: center; gap: 8px; padding: 32px 24px 24px; text-align: center; border-radius: 20px; background: var(--card); border: 1px solid var(--line); animation: checkin-rise 420ms var(--ease-precise, cubic-bezier(.2,.8,.2,1)) both; }
+.checkin-sent-card h2 { margin: 6px 0 0; font-size: 26px; letter-spacing: -.02em; }
+.checkin-sent-card p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
+.checkin-sent-card .primary { width: 100%; min-height: 50px; }
+.checkin-sent .summary-mark { width: 72px; height: 72px; overflow: visible; }
+.checkin-sent .summary-mark circle { fill: color-mix(in srgb, var(--green) 14%, transparent); stroke: var(--green); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: logger-draw 600ms var(--ease-precise, ease) 120ms forwards; }
+.checkin-sent .summary-mark path { fill: none; stroke: var(--green); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: logger-draw 380ms var(--ease-precise, ease) 520ms forwards; }
+@keyframes checkin-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes checkin-rise { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .checkin-step, .checkin-sent, .checkin-sent-card, .checkin-rating > div[role="group"] button[aria-pressed="true"] { animation: none; }
+  .checkin-sent .summary-mark circle, .checkin-sent .summary-mark path { animation: none; stroke-dashoffset: 0; }
+  .checkin-flow-progress > span { transition: none; }
+}
+:root[data-motion="reduced"] .checkin-step, :root[data-motion="reduced"] .checkin-sent, :root[data-motion="reduced"] .checkin-sent-card { animation: none; }
+:root[data-motion="reduced"] .checkin-sent .summary-mark circle, :root[data-motion="reduced"] .checkin-sent .summary-mark path { animation: none; stroke-dashoffset: 0; }
+
+/* ---- Home: customise sits at the top ---- */
+.home-greeting > .home-greeting-top, .editorial-home .home-greeting > .home-greeting-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.home-greeting-top > p { margin: 0 !important; }
+.home-edit-button.home-edit-top { width: auto; flex: none; margin: 0; padding: 0 14px; min-height: 36px; gap: 6px; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--text); font-size: 13px; font-weight: 500; }
+.home-edit-button.home-edit-top:active { transform: scale(.96); }
+.home-top-actions { display: flex; justify-content: flex-end; margin: 0 0 -6px; }
+
+/* ---- Logging feedback: values glide, a logged change pulses once ---- */
+.meter > i { transition: transform 600ms var(--ease-precise, cubic-bezier(.2,.8,.2,1)); }
+.ring circle:not(.ring-track) { transition: stroke-dasharray 80ms linear; }
+.ring-item.is-bumped .ring { animation: log-bump 620ms var(--ease-precise, cubic-bezier(.2,.8,.2,1)); }
+.ring-item.is-bumped .ring b { animation: log-number 620ms var(--ease-precise, ease); }
+@keyframes log-bump { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes log-number { 0% { color: var(--text); } 30% { color: var(--green); } 100% { color: var(--text); } }
+.habit-card strong.is-reached { color: var(--green); }
+.habit-card strong .motion-number { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .ring-item.is-bumped .ring, .ring-item.is-bumped .ring b { animation: none; } .meter > i { transition: none; } }
+:root[data-motion="reduced"] .ring-item.is-bumped .ring, :root[data-motion="reduced"] .ring-item.is-bumped .ring b { animation: none; }
+
+/* =====================================================================
+   Light mode: lighter, cleaner, softer separation.
+   Dark mode is untouched. These rules only apply with data-theme="light".
+   ===================================================================== */
+:root[data-theme='light'] {
+  --bg: #f8f8f6;
+  --card: #ffffff;
+  --surface-inset: #f2f2ef;
+  --surface-raised: #e9e9e5;
+  --surface-soft: #00000003;
+  --text: #191919;
+  --muted: #66665f;
+  --line: #0000001a;
+  --card-shadow: 0 1px 2px rgba(20, 20, 15, .04), 0 6px 20px rgba(20, 20, 15, .035);
+}
+:root[data-theme='light'] body { background: var(--bg); }
+:root[data-theme='light'] .card, :root[data-theme='light'] .recovery-card, :root[data-theme='light'] .next-up { box-shadow: var(--card-shadow); border-color: #00000012; }
+:root[data-theme='light'] .bottom-nav { background: color-mix(in srgb, var(--card) 94%, transparent); border-top: 1px solid var(--line); box-shadow: 0 -1px 0 #00000008; }
+:root[data-theme='light'] .bottom-nav button:not(.active) { color: #7a7a72; }
+:root[data-theme='light'] .modal::backdrop { background: #1a1a1a52; }
+:root[data-theme='light'] .calendar [aria-pressed="true"] { background: var(--text); color: var(--card); border-color: transparent; }
+:root[data-theme='light'] .secondary { border-color: #00000024; }
+
+/* Live recovery: a light instrument in light mode; heat colours deepened for white */
+:root[data-theme='light'] .recovery-card { --rec-hot: #df4336; --rec-warm: #d29b17; --rec-ready: #23a464; --rec-idle: #dcdcd6; --rec-muted: #66665f; --rec-line: #00000014; background: radial-gradient(120% 70% at 30% 0%, #fcefe9 0%, #ffffff 62%); color: var(--text); }
+:root[data-theme='light'] .recovery-heading { color: #3b3b36; }
+:root[data-theme='light'] .recovery-pressure { background: #d29b1714; color: #4d4123; }
+:root[data-theme='light'] .recovery-pressure b, :root[data-theme='light'] .recovery-segments > button[aria-pressed="true"] { color: var(--text); }
+:root[data-theme='light'] .recovery-stage { background: #f6f6f3; }
+:root[data-theme='light'] .body-base { fill: #e9e9e4; }
+:root[data-theme='light'] .body-muscle path { stroke: #ffffff; }
+:root[data-theme='light'] .recovery-segments { background: #00000008; }
+:root[data-theme='light'] .recovery-segments > i { background: #ffffff; box-shadow: 0 1px 3px #00000014; }
+:root[data-theme='light'] .recovery-row { color: var(--text); }
+:root[data-theme='light'] .recovery-row > i, :root[data-theme='light'] .recovery-legend i { box-shadow: inset 0 0 0 1px #00000014; }
+:root[data-theme='light'] .recovery-row.is-hot > i { box-shadow: 0 0 6px #df433666; }
+:root[data-theme='light'] .recovery-row.is-selected, :root[data-theme='light'] .recovery-detail { background: #0000000a; }
+:root[data-theme='light'] .recovery-detail p { color: #4a4a44; }
+:root[data-theme='light'] .body-muscle.is-hot { filter: none; }
+
+/* Workout logger in light mode */
+:root[data-theme='light'] .modal.workout-modal.logger-clean { --bg: #f8f8f6; --card: #ffffff; --surface-inset: #f2f2ef; --surface-raised: #e9e9e5; --text: #191919; --muted: #66665f; --line: #0000001a; color: var(--text); background: var(--bg); }
+:root[data-theme='light'] .modal.workout-modal.logger-clean .set-control { box-shadow: var(--card-shadow); border-color: #00000010; }
+:root[data-theme='light'] .modal.workout-modal.logger-clean .set-adjust > button { background: var(--surface-inset); border-color: transparent; }
+
+/* ---- Sheets: a dim that fades in and out, no blur that snaps on close ---- */
+.modal::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(0, 0, 0, .62); }
+:root[data-theme='light'] .modal::backdrop { background: rgba(20, 20, 15, .3); }
+:root .modal[data-closing="true"]::backdrop { background: rgba(0, 0, 0, 0); transition: background 200ms ease; }
+
+/* ---- Phones: content always clears the tab bar and the home indicator ---- */
+@media (max-width: 760px) {
+  .page { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+  .viewing-session .page { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+}
+/* Small phones (iPhone SE and narrower): tighter type and controls, nothing cut off. */
+@media (max-width: 360px), (max-height: 680px) {
+  .modal.workout-modal.logger-clean .set-control { grid-template-columns: 52px minmax(0, 1fr) 52px; padding: 8px; }
+  .modal.workout-modal.logger-clean .set-adjust > button { width: 48px; height: 48px; min-height: 48px; }
+  .modal.workout-modal.logger-clean .set-control input { font-size: 42px; height: 52px; }
+  .modal.workout-modal.logger-clean .logger-workout-heading h2 { font-size: 26px; }
+  .modal.workout-modal.logger-clean .set-action-area > .primary { min-height: 52px; }
+  .wheel-picker, .wheel-column { height: 176px; }
+  .wheel-pad { height: 66px; }
+  .modal.checkin-flow .checkin-number-entry input { font-size: 46px; }
+  .checkin-step { min-height: 0; }
+}

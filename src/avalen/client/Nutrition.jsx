@@ -2,7 +2,7 @@
 // manual entry or a photo), and how the day compares with water and step goals.
 import { useRef, useState } from 'react';
 import { Camera, Check, ChevronLeft, ChevronRight, Heart, Plus, ScanBarcode, Search, Utensils } from 'lucide-react';
-import { MotionList, MotionDetails } from '../motion.jsx';
+import { CountUp, MotionDetails, MotionList } from '../motion.jsx';
 import { useApp } from '../context.js';
 import { recordFood, ensureNutritionDay, nutritionDay, targetsFor } from '../nutrition-model.js';
 import { nutritionPlanFor } from '../plan-week.js';
@@ -106,7 +106,7 @@ export function Nutrition() {
             tone="macro-fat"
           />
         </div>
-        <div className="nutrition-target-context"><span>{Math.abs(targets.kcal - sum(foods, 'kcal')).toLocaleString()} kcal {sum(foods, 'kcal') <= targets.kcal ? 'remaining' : t('above target')}</span><small>{foods.length} {foods.length === 1 ? 'entry' : 'entries'} {t('logged')}</small></div></> : <p className="muted">{t('Your coach hasn’t set nutrition targets for this day yet. You can still log what you eat.')}</p>}
+        <div className="nutrition-target-context"><span><CountUp value={Math.abs(targets.kcal - sum(foods, 'kcal'))} identity={`kcal-left:${client.id}:${date}`}/> kcal {sum(foods, 'kcal') <= targets.kcal ? 'remaining' : t('above target')}</span><small>{foods.length} {foods.length === 1 ? 'entry' : 'entries'} {t('logged')}</small></div></> : <p className="muted">{t('Your coach hasn’t set nutrition targets for this day yet. You can still log what you eat.')}</p>}
       </section>
       <div className="nutrition-quick-actions"><Button onClick={() => setAdd(true)}><Plus size={18}/>{t('Log food')}</Button><Button secondary onClick={() => setAdd('Photo')}><Camera size={18}/>{t('Photo meal')}</Button></div>
       <MotionDetails className="nutrition-plan-disclosure" open={planOpen} onToggle={event => setPlanOpen(event.currentTarget.open)}><summary><span>{t('Your coach’s meal plan')}<small>{plan?.meals?.length || 0} {plan?.mode === 'Structured' ? 'prescribed' : 'suggested'} {t('meals · quick log')}</small></span><ChevronRight size={18}/></summary><CoachMealPlan onLog={setPlannedMeal}/></MotionDetails>

@@ -60,7 +60,7 @@ test('the training calendar previews scheduled days and meal capture opens the p
   });
   const label = new Date(`${next.date}T12:00:00`).toLocaleDateString('en', {weekday:'long',month:'long',day:'numeric'});
   await page.locator('.calendar').getByRole('button',{name:label,exact:true}).click();
-  await expect(page.getByRole('button',{name:/Available on/})).toBeDisabled();
+  await expect(page.getByRole('button',{name:/Do it today/})).toBeEnabled();
   await nav(page,'Nutrition').click();
   await page.getByRole('button',{name:'Photo meal',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Add meal photo',exact:true})).toBeVisible();

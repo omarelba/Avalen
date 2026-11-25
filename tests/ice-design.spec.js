@@ -17,8 +17,7 @@ test('the theme defaults to dark and an upcoming session previews its real sched
   });
   await page.getByRole('button',{name:`View ${upcoming.name}`,exact:true}).click();
   await expect(page.getByRole('heading',{name:upcoming.name,exact:true})).toBeVisible();
-  const short = new Date(`${upcoming.date}T12:00:00`).toLocaleDateString('en',{month:'short',day:'numeric'});
-  await expect(page.getByRole('button',{name:`Scheduled for ${short}`,exact:true})).toBeDisabled();
+  await expect(page.getByRole('button',{name:'Do it today or move it',exact:true})).toBeEnabled();
 });
 
 test('adopting the smoked-glass reference preserves saved sets and later appearance choices', async ({page}) => {

@@ -10,7 +10,12 @@ test('client adds an optional progress photo to a check-in and the coach sees it
   await page.locator('.home-essentials button').filter({ hasText: 'Check-in' }).click();
   await page.getByRole('button', { name: /Start check-in|Edit today’s check-in/ }).click();
   const form = page.getByRole('dialog', { name: 'Your check-in' });
-  for (const input of await form.locator('input[type="number"][required]').all()) await input.fill('80');
+  // One question at a time: answer any required reading, then continue to the last step.
+  for (let i = 0; i < 20 && !(await form.getByRole('button', { name: 'Send check-in' }).count()); i++) {
+    for (const input of await form.locator('.checkin-number input[required]').all()) await input.fill('80');
+    const next = form.getByRole('button', { name: 'Continue', exact: true });
+    if (await next.isEnabled()) await next.click(); else await form.getByRole('button', { name: /^(Skip|Next)$/ }).click();
+  }
   await form.locator('summary', { hasText: 'Add progress photos' }).click();
   await expect(form.locator('summary', { hasText: 'Add progress photos' })).toContainText('Optional');
   await form.getByLabel('Add progress photos').setInputFiles({ name: 'front.png', mimeType: 'image/png', buffer: png });

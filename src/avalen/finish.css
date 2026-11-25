@@ -6,10 +6,8 @@
   --ease-sheet: cubic-bezier(.32,.72,0,1);
 }
 
-/* Colour: black, white and photography. Green is kept for confirmed success. */
-img[src*="/exercises/"],
-.training-exercise-list .exercise-photo-number .exercise-thumb[src*="/exercises/"],
-.workout-modal .logger-background > img[src*="/exercises/"] { filter: grayscale(1) contrast(1.06) brightness(.94); }
+/* Colour: black, white and photography. Green is kept for confirmed success.
+   Exercise demonstrations keep their original colour so movements read clearly. */
 .liquid-canvas { filter: grayscale(1) contrast(1.12) brightness(.74); }
 .water-heading > svg { color: #fff; }
 .water-heading p { color: #ffffffb8; }
@@ -168,7 +166,7 @@ img[src*="/exercises/"],
 /* Dialogs are sheets on a phone: they rise from where the thumb already is. */
 .modal-drag-handle { position: relative; }
 @media (max-width: 760px) {
-  .modal:not(.focused-workout) {
+  .modal:not(.focused-workout):not(.logger-clean) {
     width: 100%;
     max-width: none;
     margin: auto 0 0;
@@ -177,7 +175,7 @@ img[src*="/exercises/"],
     /* Stop below the status bar and Dynamic Island so the close button stays easy to reach. */
     max-height: calc(var(--avalen-viewport-height, 100dvh) - max(24px, env(safe-area-inset-top, 0px) + 16px));
   }
-  .modal:not(.focused-workout) > .modal-drag-handle::before {
+  .modal:not(.focused-workout):not(.logger-clean) > .modal-drag-handle::before {
     content: "";
     position: absolute;
     top: 7px;
@@ -188,7 +186,7 @@ img[src*="/exercises/"],
     background: var(--line);
     transform: translateX(-50%);
   }
-  .modal:not(.focused-workout) > .modal-body { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+  .modal:not(.focused-workout):not(.logger-clean) > .modal-body { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
   .modal[open] { animation: motion-sheet var(--motion-sheet) var(--ease-sheet) backwards; }
 }
 @keyframes motion-sheet { from { transform: translateY(100%); } to { transform: translateY(0); } }

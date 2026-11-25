@@ -32,6 +32,7 @@ export function SmartSchedule({ client, coach = false }) {
         p.clientId === client.id && ["preview", "pending"].includes(p.status),
     ),
     rules = scheduleRules(client),
+    selfServe = rules.independent && !rules.requireApproval,
     today = zonedDay(clientTimezone(client));
   async function act(action, payload, done) {
     setBusy(true);
@@ -231,7 +232,9 @@ export function SmartSchedule({ client, coach = false }) {
                   {i.text}
                   {i.hard
                     ? t(' This proposal cannot be applied.')
-                    : t(' Coach approval is needed.')}
+                    : coach || !selfServe
+                      ? t(' Coach approval is needed.')
+                      : t(' Your coach will see this note.')}
                 </Notice>
               ))}
               {coach && (
@@ -294,9 +297,7 @@ export function SmartSchedule({ client, coach = false }) {
                           setOpen(false);
                           notify?.(
                             coach ||
-                              (rules.independent &&
-                                !rules.requireApproval &&
-                                !current.issues.length)
+                              selfServe
                               ? t('Training dates updated')
                               : t('Sent to your coach for approval'),
                           );
@@ -311,9 +312,7 @@ export function SmartSchedule({ client, coach = false }) {
                           setPreview(null);
                           notify?.(
                             coach ||
-                              (rules.independent &&
-                                !rules.requireApproval &&
-                                !current.issues.length)
+                              selfServe
                               ? t('Training dates updated')
                               : t('Sent to your coach for approval'),
                           );
@@ -326,16 +325,12 @@ export function SmartSchedule({ client, coach = false }) {
                     : !data.scheduleProposals?.some((p) => p.id === current.id)
                       ? coach
                         ? t('Approve changes')
-                        : rules.independent &&
-                            !rules.requireApproval &&
-                            !current.issues.length
+                        : selfServe
                           ? t('Confirm changes')
                           : t('Request coach approval')
                       : coach
                         ? t('Approve schedule')
-                        : rules.independent &&
-                            !rules.requireApproval &&
-                            !current.issues.length
+                        : selfServe
                           ? t('Confirm changes')
                           : t('Request coach approval')}
                 </Button>

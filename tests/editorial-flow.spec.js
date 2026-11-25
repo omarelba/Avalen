@@ -67,7 +67,7 @@ test('session details, favorites and calendar use the scheduled session', async 
   await expect(page.getByRole('heading',{name:'No saved sessions yet.'})).toBeVisible();
 });
 
-test('search has empty states and future workouts stay locked', async ({page}) => {
+test('search has empty states and future workouts can be brought forward', async ({page}) => {
   await demo(page);
   await page.getByRole('button',{name:'Search sessions'}).click();
   await page.getByRole('searchbox').fill('not a workout');
@@ -75,7 +75,8 @@ test('search has empty states and future workouts stay locked', async ({page}) =
   await page.getByRole('searchbox').fill('Lower');
   await expect(page.locator('.session-search-results > button')).toHaveCount(2);
   await page.locator('.session-search-results > button').first().click();
-  await expect(page.getByRole('button',{name:/Scheduled for/})).toBeDisabled();
+  // A future workout is no longer locked: its details lead to doing it today or moving it.
+  await expect(page.getByRole('button',{name:/Do it today or move it|Not scheduled/})).toBeVisible();
   await expect(page.getByRole('button',{name:'Add to Cal'})).toBeEnabled();
 });
 

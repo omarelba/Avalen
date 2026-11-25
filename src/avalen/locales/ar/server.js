@@ -16,7 +16,7 @@ export default {
   'Sign in to continue.': 'يلزم تسجيل الدخول للمتابعة.',
   'Refresh the page before trying again.': 'يُرجى تحديث الصفحة قبل المحاولة مجددًا.',
   'Too many attempts. Try again in 15 minutes.': 'محاولات كثيرة جدًا. يُرجى المحاولة بعد 15 دقيقة.',
-  'Use a valid email and a password with 12–200 characters.': 'يلزم بريد إلكتروني صالح وكلمة مرور من 12 إلى 200 حرف.',
+  'Use a valid email and a password with 8–200 characters.': 'يلزم بريد إلكتروني صالح وكلمة مرور من 8 إلى 200 حرف.',
   'This recording is no longer available.': 'هذا التسجيل لم يعد متاحًا.',
   'Cross-site requests are not allowed.': 'الطلبات من مواقع أخرى غير مسموح بها.',
   'Use the Avalen app for this action.': 'يُرجى استخدام تطبيق Avalen لهذا الإجراء.',
@@ -115,7 +115,7 @@ export default {
   // Password reset
   'If an account exists for that email, we’ve sent a 6-digit code. It works for 15 minutes.': 'إذا كان هناك حساب بهذا البريد الإلكتروني، فقد أرسلنا رمزًا من 6 أرقام. يعمل الرمز لمدة 15 دقيقة.',
   'That code is wrong or has expired. Check the latest email, or ask for a new code.': 'هذا الرمز غير صحيح أو انتهت صلاحيته. تحقّق من أحدث رسالة، أو اطلب رمزًا جديدًا.',
-  'Choose a password with 12–200 characters.': 'اختر كلمة مرور من 12 إلى 200 حرف.',
+  'Choose a password with 8–200 characters.': 'اختر كلمة مرور من 8 إلى 200 حرف.',
   'Enter the email you signed up with.': 'أدخل البريد الإلكتروني الذي سجّلت به.',
   'Password reset by email isn’t set up on this service yet. Contact support.': 'إعادة تعيين كلمة المرور عبر البريد الإلكتروني غير مفعّلة على هذه الخدمة بعد. تواصل مع الدعم.',
 };

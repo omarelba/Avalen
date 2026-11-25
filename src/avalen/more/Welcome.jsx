@@ -1,6 +1,6 @@
 // The first screen before onboarding: the pitch, "Explore demo", and joining a
 // coach with the local preview's fixed demo code.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Clock3 } from 'lucide-react';
 import { AppContext } from '../context.js';
 import { useWorkspaceSave } from '../workspace-save.js';
@@ -14,6 +14,8 @@ export function Welcome({ onDismiss, onJoined }) {
   const { data, update } = React.useContext(AppContext);
   const {save, saving, error:saveError} = useWorkspaceSave();
   const [join, setJoin] = useState(false), [error, setError] = useState(''), [privacy, setPrivacy] = useState(false);
+  // Leaving the welcome screen, the app opens at the top, even on a short phone scrolled to "Skip".
+  useEffect(() => () => window.scrollTo({ top: 0, behavior: 'instant' }), []);
   async function explore() { if (await save(d => d.onboarded = true)) onDismiss(); }
   return <div className="editorial-welcome">
     <img className="editorial-welcome-photo" src={welcomePortrait} alt={t('Athlete preparing for training')}/>

@@ -5,6 +5,7 @@
 // dependencies are visible in its own file and it can be tested by building a small
 // fake context rather than a whole running server.
 import { join, resolve } from "node:path";
+import { PASSWORD_MAX, PASSWORD_MIN } from "../src/avalen/validation.js";
 import { mkdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { openStore } from "./store/index.js";
@@ -190,10 +191,10 @@ export async function createContext({
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) ||
       data.email.length > 254 ||
       typeof data.password !== "string" ||
-      data.password.length < 12 ||
-      data.password.length > 200
+      data.password.length < PASSWORD_MIN ||
+      data.password.length > PASSWORD_MAX
     )
-      fail(400, "Use a valid email and a password with 12–200 characters.");
+      fail(400, "Use a valid email and a password with 8–200 characters.");
     return data.email.trim().toLowerCase();
   };
   // The rule for who may use a stored file: it must be live and unexpired, and either

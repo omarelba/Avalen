@@ -49,9 +49,9 @@ export function Dashboard() {
     progress: <MotionDetails className="coach-secondary-section"><summary>{t('Client progress')} <ChevronRight size={17}/></summary>{data.clients.filter(client => !client.paused).slice(0, 3).map(client => <button className="simple-row" key={client.id} onClick={() => selectClient(client.id, 'Progress')}><Avatar name={client.name}/><span><b>{t(client.name)}</b><small>{t('{length} sessions completed in 28 days', { length: metrics(data, client.id).sessions.length })}</small></span><ArrowRight size={15}/></button>)}</MotionDetails>,
   };
   return <>
+    <div className="home-top-actions"><EditHomeButton onClick={() => setEditingHome(true)}/></div>
     <Heading title={(new Date().getHours() < 12 ? t('Good morning, {name}.', { name: data.coach.name.split(' ')[0] }) : t('Good afternoon, {name}.', { name: data.coach.name.split(' ')[0] }))} subtitle={t('Review, respond, and get your clients moving.')}/>
     {resolveLayout(data.coach.homeLayout, availableWidgets(COACH_WIDGETS, 'coach', wearablesEnabled()), 'coach').filter((w) => w.visible).map((w) => <React.Fragment key={w.id}>{homeWidgets[w.id]}</React.Fragment>)}
-    <EditHomeButton onClick={() => setEditingHome(true)}/>
     {editingHome && <CustomiseHome widgets={availableWidgets(COACH_WIDGETS, 'coach', wearablesEnabled())} saved={data.coach.homeLayout} role="coach" onClose={() => setEditingHome(false)} write={(d, layout) => { if (layout) d.coach.homeLayout = layout; else delete d.coach.homeLayout; }}/>}
   </>;
 }

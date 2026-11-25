@@ -3,17 +3,17 @@ import { changeRest } from './rest-timer.js';
 import { MotionDetails, animate, motionReduced } from './motion.jsx';
 import { FormLab } from './formlab-entry.jsx';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, ChevronRight, Clock, List, Minus, Plus, MessageCircle, Undo2 } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, List, Minus, Plus, MessageCircle, Undo2 } from 'lucide-react';
 import { useApp } from './context.js';
 import { uid, historyFor, finishSession, sum, round } from './store.js';
 import { readWorkoutInput, writeWorkoutInput, clearWorkoutInput } from './workout-input.js';
 import { Button, Field, Modal, Tabs } from './ui.jsx';
-import { ExerciseMedia } from './ExerciseMedia.jsx';
+import { ExerciseMedia, exerciseImage } from './ExerciseMedia.jsx';
 import { libraryWithCatalogue, planExercise, regionOf } from './exercise-catalogue.js';
 import { useEditDraft } from './edit-draft.jsx';
 
 import { t } from './i18n.js';
-import { setLoggedHaptic, tickHaptic, warningHaptic, workoutFinishedHaptic } from './haptics.js';
+import { setLoggedHaptic, successHaptic as exerciseCompleteHaptic, tickHaptic, warningHaptic, workoutFinishedHaptic } from './haptics.js';
 import { useHoldRepeat } from './hold-repeat.js';
 // A weight or reps stepper button: tap for one step, hold to repeat.
 function HoldButton({ label, disabled, onStep, children }) {
@@ -50,7 +50,7 @@ function SetEditor({initial, onChange, onSubmit, number, total, previous, editin
     <div className="set-editor-heading"><b>{editing ? t('Edit set {number}', { number }) : t('Set {number} of {total}', { number, total })}</b>{!editing && pips.length > 1 && <span className="set-pips" aria-hidden="true">{pips.map((state, index) => <i key={index} className={`is-${state}`}/>)}</span>}<span>{previous ? t('Last time: {round} kg × {reps}{value}', { round: round(previous.weight), reps: previous.reps, value: duration ? ' sec' : '' }) : t('Use your coach’s target')}</span></div>
     <div className="set-controls">
       {[['weight', 'Weight (kg)', 'Weight', 'kg', validWeight, 2.5, 0, 1000], ['reps', duration ? 'Duration (seconds)' : 'Reps', duration ? 'Duration' : 'Reps', duration ? 'sec' : 'reps', validReps, duration ? 5 : 1, 1, duration ? 3600 : 500]].map(([key, label, text, unit, isValid, amount, min, max]) => <div className="set-control" key={key}>
-        <label><span>{text}<small>{unit}</small></span><input ref={node => { inputs.current[key] = node; }} aria-label={label} type="number" inputMode={key === 'weight' ? 'decimal' : 'numeric'} enterKeyHint={key === 'weight' ? 'next' : 'done'} disabled={busy} min={min} max={max} step={key === 'weight' ? 'any' : 1} value={values[key]} aria-invalid={!isValid} aria-describedby={!valid ? 'set-input-error' : undefined} onFocus={e => e.target.select()} onKeyDown={event => {if(event.key === 'Enter' && key === 'weight'){event.preventDefault();event.currentTarget.form.querySelectorAll('.set-control input')[1]?.focus();}}} onChange={e => change(key, e.target.value)}/></label>
+        <label><span>{text}{unit !== 'reps' && <small>{unit}</small>}</span><input ref={node => { inputs.current[key] = node; }} aria-label={label} type="number" inputMode={key === 'weight' ? 'decimal' : 'numeric'} enterKeyHint={key === 'weight' ? 'next' : 'done'} disabled={busy} min={min} max={max} step={key === 'weight' ? 'any' : 1} value={values[key]} aria-invalid={!isValid} aria-describedby={!valid ? 'set-input-error' : undefined} onFocus={e => e.target.select()} onKeyDown={event => {if(event.key === 'Enter' && key === 'weight'){event.preventDefault();event.currentTarget.form.querySelectorAll('.set-control input')[1]?.focus();}}} onChange={e => change(key, e.target.value)}/></label>
         <div className="set-adjust"><HoldButton label={t('Decrease {label}', { label })} disabled={busy || Number(values[key]) <= min} onStep={() => step(key, -1, amount, min, max)}><Minus size={18}/></HoldButton><span>{amount} {unit === 'reps' && amount === 1 ? 'rep' : unit}</span><HoldButton label={t('Increase {label}', { label })} disabled={busy || Number(values[key]) >= max} onStep={() => step(key, 1, amount, min, max)}><Plus size={18}/></HoldButton></div>
       </div>)}
     </div>
@@ -161,7 +161,9 @@ export function Workout({onClose, onFinish}) {
       setAnnouncement(`Set ${next} ${skipped ? 'skipped' : 'saved'}.`);
       if (!skipped) setSaved({id: recordId, number: next});
       navigator.vibrate?.(15);
-      if (!skipped) setLoggedHaptic();
+      // The last set of an exercise is a small milestone; other sets get a light tap.
+      const finishesExercise = slots.every(n => n === next || logged.some(s => s.set === n));
+      if (!skipped) (finishesExercise ? exerciseCompleteHaptic : setLoggedHaptic)();
     } catch (e) {setError(e.message); lastSaved.current = null;}
     finally {operationLock.current = false; setSavingSet(false);}
   }
@@ -182,16 +184,22 @@ export function Workout({onClose, onFinish}) {
     setEditId(null); setSwap(false); setExerciseList(false); setSaved(null); setError('');
     return true;
   }
-  return <Modal title={draft.title} canClose={!savingSet && !finishing} onClose={pause} className="workout-modal focused-workout">
-    <div className="logger-session-progress" aria-label={t('Session progress: {handled} of {totalSets} sets completed or skipped', { handled, totalSets })}><span><i style={{transform: `scaleX(${Math.min(1, handled / (totalSets || 1))})`}}/></span><small>{completedSets} {completedSets === 1 ? 'set' : 'sets'} {t('logged ·')} {Math.max(0, Math.floor((now - draft.startedAt) / 60000))} {t('min')}</small></div>
-    <nav className="logger-exercise-rail" aria-label={t('Workout exercises')} ref={exerciseRail}>{draft.exercises.map((exercise,index)=>{
-      const sets=draft.sets.filter(set=>set.exerciseId===exercise.id), done=slotsFor(exercise).every(number=>sets.some(set=>set.set===number)), fullyLogged=done && !sets.some(set=>set.skipped);
-      return <button key={exercise.id} disabled={savingSet || finishing} aria-label={t('Exercise {value}: {name}', { value: index+1, name: exercise.name })} aria-current={index===draft.index?'step':undefined} title={t('{name} · {length}/{sets} logged', { name: exercise.name, length: sets.filter(set=>!set.skipped).length, sets: exercise.sets })} className={fullyLogged?'is-logged':done?'is-handled':''} onClick={()=>chooseExercise(index)}><span>{fullyLogged?<Check size={13}/>:String(index+1).padStart(2,'0')}</span><i aria-hidden="true" style={{transform:`scaleX(${Math.min(1,sets.length/exercise.sets)})`}}/></button>;
-    })}</nav>
-    <div ref={exerciseHeading} className="logger-workout-heading"><span>{t('EXERCISE {value} / {value2}', { value: String(draft.index + 1).padStart(2, '0'), value2: String(draft.exercises.length).padStart(2, '0') })}</span><h2>{t(ex.name)}</h2></div>
-    <div className="logger-target-line" aria-label={t('Exercise prescription')}><span>{ex.sets} × {ex.reps} {ex.kind === 'Duration' ? 'sec' : 'reps'}</span><span><Clock size={13}/>{ex.rest || 0}{t('s rest')}</span>{ex.rir != null && <span>{t('{rir} reps in reserve', { rir: ex.rir })}</span>}</div>
-    {ex.notes && <p className="logger-quick-cue">{ex.notes}</p>}
-    <details className="logger-demo" key={ex.id}><summary>{t('View demonstration')} <span>{mediaExercise.videoFile ? t('Coach video') : t('Exercise reference')}</span></summary><ExerciseMedia exercise={mediaExercise} live className="logger-background"/></details>
+  const minutes = Math.max(0, Math.floor((now - draft.startedAt) / 60000));
+  return <Modal title={draft.title} canClose={!savingSet && !finishing} onClose={pause} className="workout-modal logger-clean">
+    {/* One progress indicator: a segment per exercise, filled as its sets are logged. */}
+    <div className="logger-top">
+      <nav className="logger-exercise-rail" aria-label={t('Workout exercises')} ref={exerciseRail}>{draft.exercises.map((exercise,index)=>{
+        const sets=draft.sets.filter(set=>set.exerciseId===exercise.id), done=slotsFor(exercise).every(number=>sets.some(set=>set.set===number)), fullyLogged=done && !sets.some(set=>set.skipped);
+        return <button key={exercise.id} disabled={savingSet || finishing} aria-label={t('Exercise {value}: {name}', { value: index+1, name: exercise.name })} aria-current={index===draft.index?'step':undefined} title={t('{name} · {length}/{sets} logged', { name: exercise.name, length: sets.filter(set=>!set.skipped).length, sets: exercise.sets })} className={fullyLogged?'is-logged':done?'is-handled':''} onClick={()=>chooseExercise(index)}><i aria-hidden="true"><b style={{transform:`scaleX(${Math.min(1,sets.length/exercise.sets)})`}}/></i></button>;
+      })}</nav>
+      <div className="logger-session-progress" aria-label={t('Session progress: {handled} of {totalSets} sets completed or skipped', { handled, totalSets })}><small>{t('Exercise {value} of {total}', { value: draft.index + 1, total: draft.exercises.length })}</small><small>{completedSets} {completedSets === 1 ? 'set' : 'sets'} {t('logged ·')} {minutes} {t('min')}</small></div>
+    </div>
+    <div ref={exerciseHeading} className="logger-workout-heading">
+      <h2>{t(ex.name)}</h2>
+      <p className="logger-target-line" aria-label={t('Exercise prescription')}><span>{ex.sets} × {ex.reps} {ex.kind === 'Duration' ? 'sec' : 'reps'}</span><span>{ex.rest || 0}{t('s rest')}</span>{ex.rir != null && <span>{t('{rir} reps in reserve', { rir: ex.rir })}</span>}</p>
+      {ex.notes && <p className="logger-quick-cue">{ex.notes}</p>}
+    </div>
+    <details className="logger-demo" key={ex.id}><summary><img className="logger-demo-thumb" src={exerciseImage(mediaExercise)} alt="" aria-hidden="true" decoding="async"/><span><b>{t('View demonstration')}</b><small>{mediaExercise.videoFile ? t('Coach video') : t('Exercise reference')}</small></span><ChevronRight size={18} aria-hidden="true"/></summary><ExerciseMedia exercise={mediaExercise} live className="logger-background"/></details>
     <div ref={exerciseBody} className="logger-working-area">
       {(!complete || editing) && <SetEditor busy={savingSet || finishing} key={`${ex.id}-${ex.name}-${editing?.id || next}`} initial={initial} justLogged={Boolean(saved) && !editing} pips={pips} ready={ready && !editing} duration={ex.kind === 'Duration'} number={editing?.set || next} total={ex.sets} previous={previous} editing={Boolean(editing)} cancel={() => setEditId(null)} onChange={editing ? undefined : keepInputs} onSubmit={editing ? saveEdit : log}/>}
       {complete && !editing && <div className="logger-complete"><svg className="logger-complete-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" pathLength="1"/><path pathLength="1" d="M21 33.5l7.5 7.5L44 25"/></svg><span>{t('Exercise complete')}</span><p>{logged.filter(s => !s.skipped).length} {t('of')} {ex.sets} {t('sets logged')}{logged.some(s => s.skipped) ? t(' · {length} skipped', { length: logged.filter(s => s.skipped).length }) : ''}.</p>{nextExercise && <div className="logger-up-next"><small>{t('UP NEXT')}</small><b>{t(nextExercise.name)}</b><span>{nextExercise.sets} × {nextExercise.reps} {nextExercise.kind === 'Duration' ? 'sec' : 'reps'}</span></div>}<Button onClick={() => nextExercise ? chooseExercise(draft.exercises.indexOf(nextExercise)) : setConfirm(true)}>{nextExercise ? t('Next exercise') : t('Review & finish')}<ArrowRight size={18}/></Button></div>}
@@ -201,7 +209,7 @@ export function Workout({onClose, onFinish}) {
       {inputWarning && <p className="error" role="alert">{t('These unlogged values couldn’t be saved on this device. Keep this screen open and log the set before leaving.')}</p>}
     </div>
     <div className="logger-set-list" aria-label={t('Set history')}>
-      <div className="logger-set-labels"><span>{t('Set')}</span><span>{t('Weight ·')} {ex.kind === 'Duration' ? 'seconds' : 'reps'}</span><span>{t('Status')}</span></div>
+      <div className="logger-set-labels sr-only"><span>{t('Set')}</span><span>{t('Weight ·')} {ex.kind === 'Duration' ? 'seconds' : 'reps'}</span><span>{t('Status')}</span></div>
       {slots.map(n => {const s = logged.find(x => x.set === n); return <div key={n} className={`logger-set-row ${s ? 'done' : n === next ? 'current' : ''} ${s?.id === saved?.id ? 'just-saved' : ''}`}><span className="set-number">{n}</span>{s ? <button className="set-result" aria-label={t('Edit set {n}', { n })} disabled={savingSet} onClick={() => {setEditId(s.id); exerciseBody.current?.scrollIntoView({block: 'nearest', behavior: 'instant'});}}><span>{s.skipped ? t('Skipped') : t('{weight} kg × {reps}{value}', { weight: s.weight, reps: s.reps, value: ex.kind === 'Duration' ? ' sec' : '' })}</span><small>{s.skipped ? t('Change') : t('Edit')}</small><span className="sr-only">{s.skipped ? '' : `${s.weight} × ${s.reps}`}</span></button> : <span className="set-pending">{ex.weight || 0} {t('kg ×')} {ex.reps}{ex.kind === 'Duration' ? ' sec' : ''}{prior[n - 1] && <small className="set-last">{t('last {weight} × {reps}{value}', { weight: round(prior[n - 1].weight), reps: prior[n - 1].reps, value: ex.kind === 'Duration' ? ' sec' : '' })}</small>}</span>}{s ? <button className="set-undo" aria-label={t('Undo set {n}', { n })} disabled={savingSet} onClick={async event => {
         if (event.detail > 1 || (lastSaved.current?.id === s.id && performance.now() - lastSaved.current.at < 400)) return;
         const result = await patch(d => {d.sets = d.sets.filter(x => x.id !== s.id); changeRest(d, 'skip');});
@@ -221,7 +229,7 @@ export function Workout({onClose, onFinish}) {
     <button className="logger-finish" disabled={savingSet || finishing} onClick={() => setConfirm(true)}>{t('Finish session early')}</button>
     <div className="logger-dock-stack">
       {resting ? <RestTimer key={draft.sets.length} draft={draft} nextAction={complete ? 'Continue' : 'Next set'} nextLabel={complete ? nextExercise ? `Up next: ${nextExercise.name}` : 'All working sets done' : `Set ${next} of ${ex.sets} is next`} onNext={restDone} onAction={action => {if (action === 'skip') lastSaved.current = null; patch(s => changeRest(s, action));}}/> :
-      <div className="logger-exercise-dock"><button className="logger-open-exercises" disabled={savingSet || finishing} onClick={() => setExerciseList(true)}><List size={19}/><span><b>{t('Your workout')}</b><small>{t('Exercise')} {draft.index + 1} {t('of')} {draft.exercises.length}</small></span><ChevronRight size={18}/></button><button className="logger-pause" disabled={savingSet || finishing} onClick={pause}>{t('Pause & close')}</button></div>}
+      <div className="logger-exercise-dock"><button className="logger-open-exercises" disabled={savingSet || finishing} onClick={() => setExerciseList(true)}><List size={19}/><span><b>{t('Your workout')}</b><small>{nextExercise && nextExercise !== ex ? t('Up next: {name}', { name: t(nextExercise.name) }) : t('Exercise')+' '+(draft.index + 1)+' '+t('of')+' '+draft.exercises.length}</small></span><ChevronRight size={18}/></button><button className="logger-pause" disabled={savingSet || finishing} onClick={pause}>{t('Pause & close')}</button></div>}
     </div>
     {exerciseList && <Modal title={t('Your workout')} onClose={() => setExerciseList(false)}><p className="muted">{t('Choose an exercise. Your logged sets stay saved.')}</p><div className="logger-exercise-picker">{draft.exercises.map((e, index) => {
       const rows = draft.sets.filter(s => s.exerciseId === e.id), done = slotsFor(e).every(n => rows.some(s => s.set === n));

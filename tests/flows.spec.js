@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { answerCheckin } from "./helpers/checkin-flow.js";
 test("coach covers, custom habits, membership and branding flow through to client", async ({
   page,
 }) => {
@@ -97,7 +98,7 @@ test("fresh onboarding, workout draft persistence, finish and real PNG export", 
     page.getByRole("heading", { name: "You showed up." }),
   ).toBeVisible();
   // 62.5 kg × 11 = 687.5; the result card shows volume as a whole number.
-  await expect(page.getByText("688", { exact: true })).toBeVisible();
+  await expect(page.locator(".workout-summary").getByText("688", { exact: true })).toBeVisible();
   const promise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Save image", exact: true }).click();
   const file = await promise;
@@ -117,11 +118,7 @@ test("client check-in reaches coach review and feedback returns to messages", as
   await demo(page);
   await coachScreen(page, "Check-in");
   await page.getByRole("button", { name: "Start check-in" }).click();
-  await page.getByLabel("Weight (kg)", { exact: true }).fill("80.2");
-  await page
-    .getByLabel("Your update (optional)")
-    .fill("Training felt strong this week.");
-  await page.getByRole("button", { name: "Send check-in" }).click();
+  await answerCheckin(page, { "Weight (kg)": "80.2", "Your update (optional)": "Training felt strong this week." });
   await page.getByLabel("Workspace role").selectOption("coach");
   await nav(page, "Inbox").click();
   await page.getByRole("tab", { name: "Check-ins", exact: true }).click();
@@ -290,13 +287,13 @@ test("photos, documents, verified InBody, future locking and keyboard chart", as
     return new Date(`${future.date}T12:00:00`).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' });
   });
   await page.getByRole("button", { name, exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: /Available on/ }),
-  ).toBeDisabled();
+  // A future workout can be done today or moved; it is never a dead end.
+  await expect(page.getByRole("button", { name: /Do it today/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /Move to another day/ })).toBeEnabled();
   await page.getByRole("button", { name: "View session details" }).click();
   await expect(
-    page.getByRole("button", { name: /Scheduled for/ }),
-  ).toBeDisabled();
+    page.getByRole("button", { name: /Do it today or move it/ }),
+  ).toBeEnabled();
 });
 for (const width of [320, 390, 768, 1440])
   test(`navigation and no horizontal overflow at ${width}px`, async ({

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { answerCheckin } from "./helpers/checkin-flow.js";
 import { fixture } from "./helpers/service.js";
 import { workspaceChanges } from "../src/avalen/ecosystem/changes.js";
 import { execFileSync } from "node:child_process";
@@ -62,11 +63,7 @@ test("authenticated client text check-in reaches coach review, shared feedback a
   await page
     .getByRole("button", { name: "Start check-in", exact: false })
     .click();
-  await page.getByLabel("Weight (kg)", { exact: true }).fill("81.4");
-  await page
-    .getByLabel("Your update (optional)")
-    .fill("Low energy after a busy week.");
-  await page.getByRole("button", { name: "Send check-in" }).click();
+  await answerCheckin(page, { "Weight (kg)": "81.4", "Your update (optional)": "Low energy after a busy week." }, { dismiss: false });
   await expect(
     page.getByRole("status").filter({ hasText: "Check-in sent" }),
   ).toBeVisible();
@@ -223,6 +220,8 @@ test("client schedule proposal requires coach approval and updates the calendar 
     { date: date(1), dayId: c.program.days[0].id },
     { date: date(5), dayId: c.program.days[1].id },
   ];
+  // Clients reschedule on their own by default; this coach requires approval for every change.
+  c.scheduleRules = { independent: false, requireApproval: true, allowedDays: [0, 1, 2, 3, 4, 5, 6], minSpacingDays: 1, maxWeekly: 4, preserveOrder: true, windowStart: "06:00", windowEnd: "22:00", priorities: {} };
   state = await service.call("/api/workspace", {
     method: "PATCH",
     account: service.coach,
@@ -372,7 +371,7 @@ test("voice check-in survives a failed save and can be retried without duplicate
     await page
       .getByRole("button", { name: "Start check-in", exact: false })
       .click();
-    await page.getByLabel("Weight (kg)", { exact: true }).fill("80.5");
+    await answerCheckin(page, { "Weight (kg)": "80.5" }, { send: false });
     await page
       .locator(".checkin-voice-disclosure > summary")
       .filter({ hasText: "Add a voice update" })

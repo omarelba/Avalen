@@ -373,7 +373,7 @@ input::file-selector-button { background: var(--surface-raised); color: var(--te
 .logger-workout-heading > span { font: 11px ui-monospace,monospace; letter-spacing: .08em; color: #bababa; }
 .logger-workout-heading h2 { font-size: 25px; color: #fff; line-height: 1.15; font-weight: 650; margin-top: 9px; letter-spacing: -.04em; }
 .workout-modal .logger-background { position: relative; height: 170px; width: 100%; margin: 0 0 14px; border-radius: 0; }
-.workout-modal .logger-background > img { height: 100%; object-position: center 40%; filter: brightness(.8) saturate(.6); }
+.workout-modal .logger-background > img { height: 100%; object-position: center 40%; filter: brightness(.85); }
 .workout-modal .exercise-media-shade { background: linear-gradient(0deg,#0005,transparent 55%); }
 .workout-modal .exercise-media-caption { top: auto; bottom: 10px; inset-inline-start: 12px; font-size: 12px; }
 .workout-modal .logger-photo-space { display: none; }

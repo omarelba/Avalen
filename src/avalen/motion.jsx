@@ -183,6 +183,14 @@ export function MotionNumber({ value, identity, decimals, from }) {
   );
 }
 
+// A counting number as plain text, for places that read as one value (a running total
+// beside a label). It settles on the real value, so its text is always the true number.
+export function CountUp({ value, identity, from }) {
+  const shown = useAnimatedNumber(Number(value), identity, from);
+  const decimals = Number.isInteger(Number(value)) ? 0 : Math.min(3, String(value).split('.')[1]?.length || 0);
+  return shown.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
 // Measure only when selection/layout changes; animate a single indicator.
 export function MovingIndicator({
   container,

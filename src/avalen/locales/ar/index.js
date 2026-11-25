@@ -12,5 +12,6 @@ import paymentsWearables from './payments-wearables.js';
 import screens from './screens.js';
 import server from './server.js';
 import shell from './shell.js';
+import refresh from './refresh.js';
 
-export default { ...accounts, ...exercises, ...extras, ...library, ...server, ...community, ...ecosystem, ...paymentsWearables, ...checkins, ...coach, ...client, ...shell, ...screens };
+export default { ...accounts, ...exercises, ...extras, ...library, ...server, ...community, ...ecosystem, ...paymentsWearables, ...checkins, ...coach, ...client, ...shell, ...screens, ...refresh };

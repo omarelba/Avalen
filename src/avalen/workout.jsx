@@ -207,7 +207,8 @@ export function ShareWorkout({ session, onClose, celebrate = false }) {
         />
       )}
       {celebrate && !story && <Confetti burst={session.prs?.length ? 120 : 70} />}
-      {celebrate && !story && <div className="workout-earned" role="status"><span className="earned-mark"><Check size={26}/></span><div><span className="eyebrow">{t('SESSION SAVED')}</span><h2>{t('You put in the work.')}</h2><p>{session.prs?.length ? t('{count} personal records · {list}', { count: session.prs.length, list: session.prs.map((name) => t(name)).join(t(', ')) }) : t('{length} working sets. One step forward.', { length: sets.filter(s => !s.skipped).length })}</p></div></div>}
+      {celebrate && !story && <WorkoutSummary session={session} sets={sets} stats={stats} />}
+      {celebrate && !story && <h3 className="section-label share-label">{t('Share your result')}</h3>}
       <div
         className={`share-poster ${celebrate ? 'earned-poster' : ''}`}
         style={{
@@ -319,8 +320,32 @@ export function ShareWorkout({ session, onClose, celebrate = false }) {
           {error}
         </p>
       )}
+      {celebrate && !story && <Button className="summary-done" onClick={onClose}>{t('Done')}</Button>}
     </Modal>
   );
+}
+
+// The moment a workout is saved: what was done, counted up, before any sharing.
+function WorkoutSummary({ session, sets, stats }) {
+  const done = sets.filter((s) => !s.skipped);
+  const exercises = [...new Map(done.map((s) => [s.exerciseId || s.name, s.name])).entries()].map(([id, name]) => {
+    const rows = done.filter((s) => (s.exerciseId || s.name) === id);
+    const best = rows.reduce((a, b) => (b.kind === 'Duration' ? b.reps > (a?.reps ?? -1) : b.weight * (1 + b.reps / 30) > (a ? a.weight * (1 + a.reps / 30) : -1)) ? b : a, null);
+    return { id, name, count: rows.length, best, pr: session.prs?.includes(name) };
+  });
+  const labels = { MINUTES: t('minutes'), SETS: t('sets'), 'KG VOLUME': t('kg volume') };
+  return <section className="workout-summary" role="status" aria-label={t('Workout saved')}>
+    <svg className="summary-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" pathLength="1"/><path pathLength="1" d="M21 33.5l7.5 7.5L44 25"/></svg>
+    <span className="eyebrow">{t('WORKOUT COMPLETE')}</span>
+    <h2>{t('You put in the work.')}</h2>
+    <p className="muted">{t(session.title)}</p>
+    <div className="summary-stats">{stats.map(([value, label]) => <span key={label}><b><MotionNumber value={value} from={0} identity={`summary:${session.id}:${label}`}/></b><small>{labels[label] || label}</small></span>)}</div>
+    {session.prs?.length > 0 && <p className="summary-prs">{t('{count} personal records · {list}', { count: session.prs.length, list: session.prs.map((name) => t(name)).join(t(', ')) })}</p>}
+    <ul className="summary-exercises" aria-label={t('Exercise summary')}>{exercises.map((e) => <li key={e.id}>
+      <span><b>{t(e.name)}</b><small>{t('{count} sets', { count: e.count })}{e.pr ? ` · ${t('Personal record')}` : ''}</small></span>
+      {e.best && <em>{e.best.kind === 'Duration' ? `${e.best.reps} sec` : t('{weight} kg × {reps}', { weight: round(e.best.weight), reps: e.best.reps })}</em>}
+    </li>)}</ul>
+  </section>;
 }
 function SectionLabel({ children }) {
   return <h3 className="section-label">{children}</h3>;

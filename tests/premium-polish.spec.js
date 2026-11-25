@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import { answerCheckin, backTo, dismissSent, toLastStep } from './helpers/checkin-flow.js';
 const nav = (page, name) => page.getByRole('navigation', {name:'Main navigation'}).getByRole('button', {name,exact:true});
 const state = page => page.evaluate(() => JSON.parse(localStorage.getItem('avalen.workspace.v1')));
 async function demo(page) {await page.goto('/'); await page.getByRole('button',{name:'Explore demo'}).click(); await expect(page.getByRole('heading',{name:/Make it count,/})).toBeVisible();}
@@ -60,18 +61,18 @@ test('a user reading earlier messages is not pulled down by an incoming update',
 
 test('measurements come first and an unsent check-in restores after closing and refresh', async ({page}) => {
  await demo(page); await checkin(page); await expect(page.getByLabel('Weight (kg)',{exact:true})).toBeInViewport(); await expect(page.getByRole('button',{name:'Record voice',exact:true})).toHaveCount(0);
- await page.getByLabel('Weight (kg)',{exact:true}).fill('78.25'); await page.getByLabel('Your update (optional)',{exact:true}).fill('A steady week, feeling stronger.');
+ await answerCheckin(page,{'Weight (kg)':'78.25','Your update (optional)':'A steady week, feeling stronger.'},{send:false});
  await page.getByRole('button',{name:'Close dialog',exact:true}).click(); await page.getByRole('button',{name:'Start check-in',exact:true}).click(); await expect(page.getByLabel('Weight (kg)',{exact:true})).toHaveValue('78.25');
- await page.reload(); await page.getByRole('button',{name:'Start check-in',exact:true}).click(); await expect(page.getByLabel('Your update (optional)',{exact:true})).toHaveValue('A steady week, feeling stronger.');
- const before=(await state(page)).checkins.length; await page.getByRole('button',{name:'Send check-in',exact:true}).click(); await expect(page.getByRole('dialog',{name:'Your check-in',exact:true})).toHaveCount(0);
+ await page.reload(); await page.getByRole('button',{name:'Start check-in',exact:true}).click(); await toLastStep(page); await expect(page.getByLabel('Your update (optional)',{exact:true})).toHaveValue('A steady week, feeling stronger.');
+ const before=(await state(page)).checkins.length; await page.getByRole('button',{name:'Send check-in',exact:true}).click(); await expect(page.getByRole('dialog',{name:'Your check-in',exact:true})).toHaveCount(0); await dismissSent(page);
  expect((await state(page)).checkins).toHaveLength(before+1); expect((await state(page)).checkins.at(-1).answers.weight).toBe(78.25);
 });
 
 test('a failed check-in save retains the form and does not create a submission', async ({page}) => {
- await demo(page); await checkin(page); await page.getByLabel('Weight (kg)',{exact:true}).fill('79.2'); const before=(await state(page)).checkins;
+ await demo(page); await checkin(page); await answerCheckin(page,{'Weight (kg)':'79.2'},{send:false}); const before=(await state(page)).checkins;
  await page.evaluate(()=>{const original=Storage.prototype.setItem;window.restoreStorage=()=>{Storage.prototype.setItem=original;};Storage.prototype.setItem=function(key,value){if(key==='avalen.workspace.v1')throw new DOMException('Full','QuotaExceededError');return original.call(this,key,value);};});
- await page.getByRole('button',{name:'Send check-in',exact:true}).click(); await expect(page.getByRole('dialog',{name:'Your check-in',exact:true})).toBeVisible(); await expect(page.getByLabel('Weight (kg)',{exact:true})).toHaveValue('79.2'); expect((await state(page)).checkins).toEqual(before);
- await page.evaluate(()=>window.restoreStorage()); await page.getByRole('button',{name:'Send check-in',exact:true}).click();await expect(page.getByRole('dialog',{name:'Your check-in',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Send check-in',exact:true}).click(); await expect(page.getByRole('dialog',{name:'Your check-in',exact:true})).toBeVisible(); await backTo(page,'Weight (kg)'); await expect(page.getByLabel('Weight (kg)',{exact:true})).toHaveValue('79.2'); expect((await state(page)).checkins).toEqual(before);
+ await page.evaluate(()=>window.restoreStorage()); await toLastStep(page); await page.getByRole('button',{name:'Send check-in',exact:true}).click();await expect(page.getByRole('dialog',{name:'Your check-in',exact:true})).toHaveCount(0);
 });
 
 test('weight-only updates preserve the latest known body measurements with their dates', async ({page}) => {
